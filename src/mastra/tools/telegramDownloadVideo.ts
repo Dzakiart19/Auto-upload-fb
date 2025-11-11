@@ -62,7 +62,14 @@ export const telegramDownloadVideo = createTool({
       const filePath = fileInfo.result.file_path;
       const fileSize = fileInfo.result.file_size || 0;
       
-      logger?.info('📝 [telegramDownloadVideo] Downloading file from Telegram...', { filePath, fileSize });
+      // Extract file extension from Telegram file path
+      const fileExtension = filePath.split('.').pop() || 'mp4';
+      
+      logger?.info('📝 [telegramDownloadVideo] Downloading file from Telegram...', { 
+        filePath, 
+        fileSize,
+        fileExtension,
+      });
       
       // Download the file
       const downloadUrl = `https://api.telegram.org/file/bot${token}/${filePath}`;
@@ -104,7 +111,9 @@ export const telegramDownloadVideo = createTool({
         });
       }
       
-      const fileName = context.fileName || `video_${Date.now()}.mp4`;
+      // Use original file extension from Telegram, fallback to mp4
+      const baseFileName = context.fileName || `video_${Date.now()}`;
+      const fileName = baseFileName.includes('.') ? baseFileName : `${baseFileName}.${fileExtension}`;
       const tmpDir = '/tmp/telegram_videos';
       
       // Create directory if it doesn't exist
@@ -121,7 +130,8 @@ export const telegramDownloadVideo = createTool({
         localFilePath, 
         fileSize: stats.size,
         expectedSize: fileSize,
-        bufferSize: bufferData.length
+        bufferSize: bufferData.length,
+        fileExtension,
       });
       
       if (stats.size === 0) {
@@ -130,6 +140,11 @@ export const telegramDownloadVideo = createTool({
           success: false,
           error: 'File tersimpan dengan ukuran 0 bytes',
         };
+      }
+      
+      // Additional validation: check if file size is suspiciously small
+      if (stats.size < 10240) { // Less than 10KB is likely invalid for a video
+        logger?.warn('⚠️ [telegramDownloadVideo] File size is very small (< 10KB), might be corrupt:', stats.size);
       }
       
       return {

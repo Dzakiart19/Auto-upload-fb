@@ -2,7 +2,7 @@ import { createStep, createWorkflow } from "../inngest";
 import { z } from "zod";
 import { facebookVideoAgent } from "../agents/facebookVideoAgent";
 import { telegramDownloadVideo } from "../tools/telegramDownloadVideo";
-import { facebookUploadVideo } from "../tools/facebookUploadVideo";
+import { facebookUploadVideoResumable } from "../tools/facebookUploadVideoResumable";
 import { facebookShareToGroups } from "../tools/facebookShareToGroups";
 import { telegramSendMessage } from "../tools/telegramSendMessage";
 
@@ -32,10 +32,10 @@ const processVideoDirectly = async (inputData: any, mastra: any) => {
     const downloadResult = await telegramDownloadVideo.execute({
       context: {
         fileId: inputData.fileId,
-        fileName: `video_${Date.now()}.mp4`
+        fileName: `video_${Date.now()}` // Let the tool add the correct extension
       },
       mastra,
-      runtimeContext: {}
+      runtimeContext: {} as any
     });
     
     if (!downloadResult.success || !downloadResult.filePath) {
@@ -45,16 +45,16 @@ const processVideoDirectly = async (inputData: any, mastra: any) => {
     downloadSuccess = true;
     logger?.info("✅ [Step 1/4] Video downloaded successfully");
     
-    // Step 2: Upload video to Facebook Page (using simple upload)
-    logger?.info("📤 [Step 2/4] Uploading video to Facebook Page...");
-    const uploadResult = await facebookUploadVideo.execute({
+    // Step 2: Upload video to Facebook Page (using resumable upload for reliability)
+    logger?.info("📤 [Step 2/4] Uploading video to Facebook Page (resumable upload)...");
+    const uploadResult = await facebookUploadVideoResumable.execute({
       context: {
         videoPath: downloadResult.filePath,
         title: inputData.title,
         description: inputData.description
       },
       mastra,
-      runtimeContext: {}
+      runtimeContext: {} as any
     });
     
     if (!uploadResult.success || !uploadResult.videoUrl) {
@@ -75,7 +75,7 @@ const processVideoDirectly = async (inputData: any, mastra: any) => {
         message: `${inputData.title}\n\n${inputData.description}`
       },
       mastra,
-      runtimeContext: {}
+      runtimeContext: {} as any
     });
     
     shareResults = {
@@ -114,7 +114,7 @@ _Video diproses tanpa AI (mode fallback)_
         message: confirmationMessage
       },
       mastra,
-      runtimeContext: {}
+      runtimeContext: {} as any
     });
     
     logger?.info("✅ [Step 4/4] Confirmation sent to user");
@@ -149,7 +149,7 @@ _Video diproses tanpa AI (mode fallback)_
           message: errorMessage
         },
         mastra,
-        runtimeContext: {}
+        runtimeContext: {} as any
       });
     } catch (notifError) {
       logger?.error("❌ Failed to send error notification:", notifError);
