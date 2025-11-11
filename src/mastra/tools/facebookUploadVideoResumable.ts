@@ -1,6 +1,7 @@
 import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
 import * as fs from "fs";
+import FormData from "form-data";
 import { getFacebookCredentials } from "./facebookHelpers";
 
 export const facebookUploadVideoResumable = createTool({
@@ -76,7 +77,7 @@ export const facebookUploadVideoResumable = createTool({
       // Step 1: Initialize upload session
       logger?.info('📝 [facebookUploadVideoResumable] Step 1: Initializing upload session...');
       
-      const initUrl = `https://graph.facebook.com/v19.0/${pageId}/videos`;
+      const initUrl = `https://graph-video.facebook.com/v19.0/${pageId}/videos`;
       const initParams = new URLSearchParams({
         access_token: pageAccessToken,
         upload_phase: 'start',
@@ -105,25 +106,25 @@ export const facebookUploadVideoResumable = createTool({
         videoId,
       });
       
-      // Step 2: Upload video file
+      // Step 2: Upload video file using FormData
       logger?.info('📤 [facebookUploadVideoResumable] Step 2: Uploading video file...');
       
-      const videoBuffer = fs.readFileSync(context.videoPath);
-      
-      const uploadUrl = `https://graph.facebook.com/v19.0/${pageId}/videos`;
-      const uploadParams = new URLSearchParams({
-        access_token: pageAccessToken,
-        upload_phase: 'transfer',
-        upload_session_id: uploadSessionId,
-        start_offset: '0',
+      const form = new FormData();
+      form.append('access_token', pageAccessToken);
+      form.append('upload_phase', 'transfer');
+      form.append('start_offset', '0');
+      form.append('upload_session_id', uploadSessionId);
+      form.append('video_file_chunk', fs.createReadStream(context.videoPath), {
+        filename: 'video.mp4',
+        contentType: 'video/mp4',
       });
       
-      const uploadResponse = await fetch(`${uploadUrl}?${uploadParams}`, {
+      const uploadUrl = `https://graph-video.facebook.com/v19.0/${pageId}/videos`;
+      
+      const uploadResponse = await fetch(uploadUrl, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/octet-stream',
-        },
-        body: videoBuffer,
+        body: form as any,
+        headers: form.getHeaders(),
       });
       
       const uploadResult = await uploadResponse.json();
@@ -141,7 +142,7 @@ export const facebookUploadVideoResumable = createTool({
       // Step 3: Finalize upload with title and description
       logger?.info('📝 [facebookUploadVideoResumable] Step 3: Finalizing upload...');
       
-      const finalizeUrl = `https://graph.facebook.com/v19.0/${pageId}/videos`;
+      const finalizeUrl = `https://graph-video.facebook.com/v19.0/${pageId}/videos`;
       const finalizeParams = new URLSearchParams({
         access_token: pageAccessToken,
         upload_phase: 'finish',
