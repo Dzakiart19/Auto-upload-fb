@@ -114,6 +114,51 @@ export const mastra = new Mastra({
     ],
     apiRoutes: [
       // ======================================================================
+      // Health Check & Status Endpoint
+      // ======================================================================
+      {
+        path: "/",
+        method: "GET",
+        createHandler: async () => {
+          return async (c) => {
+            const replSlug = process.env.REPL_SLUG || "workspace";
+            const replOwner = process.env.REPL_OWNER || "unknown";
+            const publicUrl = `https://${replSlug}.${replOwner}.replit.dev`;
+            
+            return c.json({
+              status: "✅ Server Aktif",
+              message: "Bot Telegram untuk Upload Video ke Facebook",
+              publicUrl: publicUrl,
+              webhookUrl: `${publicUrl}/webhooks/telegram/action`,
+              endpoints: {
+                telegram: "/webhooks/telegram/action",
+                playground: "http://0.0.0.0:5000/",
+                inngest: "/api/inngest"
+              },
+              instructions: `Untuk setup Telegram webhook, kunjungi:\nhttps://api.telegram.org/bot<TOKEN>/setWebhook?url=${publicUrl}/webhooks/telegram/action`
+            });
+          };
+        },
+      },
+      {
+        path: "/status",
+        method: "GET",
+        createHandler: async () => {
+          return async (c) => {
+            const replSlug = process.env.REPL_SLUG || "workspace";
+            const replOwner = process.env.REPL_OWNER || "unknown";
+            const publicUrl = `https://${replSlug}.${replOwner}.replit.dev`;
+            
+            return c.json({
+              status: "online",
+              publicUrl: publicUrl,
+              webhookUrl: `${publicUrl}/webhooks/telegram/action`,
+              timestamp: new Date().toISOString()
+            });
+          };
+        },
+      },
+      // ======================================================================
       // Inngest Integration Endpoint
       // ======================================================================
       // This API route is used to register the Mastra workflow (inngest function) on the inngest server
@@ -264,3 +309,20 @@ if (Object.keys(mastra.getAgents()).length > 1) {
     "More than 1 agents found. Currently, more than 1 agents are not supported in the UI, since doing so will cause app state to be inconsistent.",
   );
 }
+
+// Display public URL on startup
+const replSlug = process.env.REPL_SLUG || "workspace";
+const replOwner = process.env.REPL_OWNER || "unknown";
+const publicUrl = `https://${replSlug}.${replOwner}.replit.dev`;
+const logger = mastra.getLogger();
+
+logger?.info("🚀 ========================================");
+logger?.info("🎬 Bot Telegram untuk Upload Video ke Facebook");
+logger?.info("🚀 ========================================");
+logger?.info(`🌍 URL Publik: ${publicUrl}`);
+logger?.info(`📡 Webhook Telegram: ${publicUrl}/webhooks/telegram/action`);
+logger?.info(`📊 Status: ${publicUrl}/status`);
+logger?.info("🚀 ========================================");
+logger?.info("📝 Setup Telegram Webhook:");
+logger?.info(`   https://api.telegram.org/bot<TOKEN>/setWebhook?url=${publicUrl}/webhooks/telegram/action`);
+logger?.info("🚀 ========================================");

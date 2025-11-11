@@ -13,7 +13,28 @@ Bot ini memungkinkan pengguna untuk:
 4. Otomatis share ke semua Facebook Groups yang terdaftar
 5. Menerima konfirmasi hasil melalui Telegram
 
-### Cara Penggunaan:
+### URL Publik & Webhook Setup:
+
+**URL Publik Server (GRATIS):**
+- Development: `https://workspace.fenevim600.replit.dev`
+- Status: `https://workspace.fenevim600.replit.dev/status`
+- Webhook Telegram: `https://workspace.fenevim600.replit.dev/webhooks/telegram/action`
+
+**Cara Setup Telegram Webhook:**
+1. Ganti `<TOKEN>` dengan TELEGRAM_BOT_TOKEN Anda
+2. Kunjungi URL ini di browser:
+   ```
+   https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://workspace.fenevim600.replit.dev/webhooks/telegram/action
+   ```
+3. Pastikan mendapat response: `{"ok":true,"result":true,"description":"Webhook was set"}`
+
+**Cara Verifikasi Webhook:**
+Cek apakah webhook sudah terset dengan benar:
+```
+https://api.telegram.org/bot<TOKEN>/getWebhookInfo
+```
+
+### Cara Penggunaan Bot:
 1. Kirim `/start` ke bot Telegram
 2. Kirim video yang ingin diupload
 3. Masukkan judul video
@@ -23,6 +44,8 @@ Bot ini memungkinkan pengguna untuk:
 ### Konfigurasi:
 - Tambahkan Facebook Group IDs di file `groups.txt` (satu ID per baris)
 - Pastikan semua environment variables sudah diisi (lihat bagian External Dependencies)
+- URL `.replit.dev` adalah URL gratis yang aktif saat aplikasi running
+- URL `.replit.app` memerlukan deployment berbayar (tidak diperlukan untuk bot ini)
 
 # User Preferences
 
