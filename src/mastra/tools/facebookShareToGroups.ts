@@ -69,8 +69,7 @@ export const facebookShareToGroups = createTool({
       const groupIds = groupsContent
         .split('\n')
         .map(line => line.trim())
-        .filter(line => line && !line.startsWith('#'))
-        .filter(line => /^\d+$/.test(line)); // Only numeric IDs
+        .filter(line => line && !line.startsWith('#')); // Accept both numeric and text IDs
       
       if (groupIds.length === 0) {
         logger?.warn('⚠️ [facebookShareToGroups] No group IDs found in groups.txt');
