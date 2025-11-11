@@ -3,6 +3,7 @@ import { Memory } from "@mastra/memory";
 import { sharedPostgresStorage } from "../storage";
 import { telegramDownloadVideo } from "../tools/telegramDownloadVideo";
 import { facebookUploadVideo } from "../tools/facebookUploadVideo";
+import { facebookUploadVideoResumable } from "../tools/facebookUploadVideoResumable";
 import { facebookShareToGroups } from "../tools/facebookShareToGroups";
 import { telegramSendMessage } from "../tools/telegramSendMessage";
 import { createOpenAI } from "@ai-sdk/openai";
@@ -32,7 +33,7 @@ export const facebookVideoAgent = new Agent({
     
     Tools yang tersedia:
     - telegram-download-video: untuk download video dari Telegram
-    - facebook-upload-video: untuk upload video ke Facebook Page
+    - facebook-upload-video-resumable: untuk upload video ke Facebook Page (lebih reliable, gunakan ini)
     - facebook-share-to-groups: untuk share post ke grup-grup Facebook
     - telegram-send-message: untuk mengirim pesan konfirmasi ke pengguna
   `,
@@ -41,7 +42,7 @@ export const facebookVideoAgent = new Agent({
   
   tools: {
     telegramDownloadVideo,
-    facebookUploadVideo,
+    facebookUploadVideoResumable,
     facebookShareToGroups,
     telegramSendMessage,
   },

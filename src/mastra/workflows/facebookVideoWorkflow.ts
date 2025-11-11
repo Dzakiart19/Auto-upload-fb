@@ -3,6 +3,7 @@ import { z } from "zod";
 import { facebookVideoAgent } from "../agents/facebookVideoAgent";
 import { telegramDownloadVideo } from "../tools/telegramDownloadVideo";
 import { facebookUploadVideo } from "../tools/facebookUploadVideo";
+import { facebookUploadVideoResumable } from "../tools/facebookUploadVideoResumable";
 import { facebookShareToGroups } from "../tools/facebookShareToGroups";
 import { telegramSendMessage } from "../tools/telegramSendMessage";
 
@@ -45,9 +46,9 @@ const processVideoDirectly = async (inputData: any, mastra: any) => {
     downloadSuccess = true;
     logger?.info("✅ [Step 1/4] Video downloaded successfully");
     
-    // Step 2: Upload video to Facebook Page
-    logger?.info("📤 [Step 2/4] Uploading video to Facebook Page...");
-    const uploadResult = await facebookUploadVideo.execute({
+    // Step 2: Upload video to Facebook Page (using resumable upload)
+    logger?.info("📤 [Step 2/4] Uploading video to Facebook Page (using resumable upload)...");
+    const uploadResult = await facebookUploadVideoResumable.execute({
       context: {
         videoPath: downloadResult.filePath,
         title: inputData.title,
