@@ -1,7 +1,6 @@
-import { PostgresStore } from "@mastra/pg";
+import { LibSQLStore } from "@mastra/libsql";
 
-// Create a single shared PostgreSQL storage instance
-export const sharedPostgresStorage = new PostgresStore({
-  connectionString:
-    process.env.DATABASE_URL || "postgresql://localhost:5432/mastra",
+// Create a single shared LibSQL storage instance (file-based, no database required)
+export const sharedPostgresStorage = new LibSQLStore({
+  url: "file:mastra.db",
 });
