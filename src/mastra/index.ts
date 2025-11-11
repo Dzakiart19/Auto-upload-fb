@@ -9,8 +9,9 @@ import { z } from "zod";
 
 import { sharedPostgresStorage } from "./storage";
 import { inngest, inngestServe } from "./inngest";
-import { exampleWorkflow } from "./workflows/exampleWorkflow"; // Replace with your own workflow
-import { exampleAgent } from "./agents/exampleAgent"; // Replace with your own agent
+import { facebookVideoWorkflow } from "./workflows/facebookVideoWorkflow";
+import { facebookVideoAgent } from "./agents/facebookVideoAgent";
+import { registerTelegramTrigger } from "../triggers/telegramTriggers";
 
 class ProductionPinoLogger extends MastraLogger {
   protected logger: pino.Logger;
@@ -56,9 +57,9 @@ class ProductionPinoLogger extends MastraLogger {
 export const mastra = new Mastra({
   storage: sharedPostgresStorage,
   // Register your workflows here
-  workflows: {},
+  workflows: { facebookVideoWorkflow },
   // Register your agents here
-  agents: {},
+  agents: { facebookVideoAgent },
   mcpServers: {
     allTools: new MCPServer({
       name: "allTools",
@@ -208,6 +209,32 @@ export const mastra = new Mastra({
       // ...registerGithubTrigger({ ... }),
       // ...registerSlackTrigger({ ... }),
       // ...registerStripeWebhook({ ... }),
+      
+      // Telegram trigger for video upload to Facebook
+      ...registerTelegramTrigger({
+        triggerType: "telegram/video",
+        handler: async (mastra, triggerInfo) => {
+          const logger = mastra.getLogger();
+          logger?.info("🎯 [Telegram Trigger] Processing video upload", {
+            chatId: triggerInfo.params.chatId,
+            fileId: triggerInfo.params.fileId,
+          });
+
+          const threadId = `telegram-video-${triggerInfo.params.chatId}-${Date.now()}`;
+
+          const run = await facebookVideoWorkflow.createRunAsync();
+          await run.start({
+            inputData: {
+              threadId,
+              chatId: triggerInfo.payload.chatId,
+              fileId: triggerInfo.payload.fileId,
+              title: triggerInfo.payload.title,
+              description: triggerInfo.payload.description,
+              userName: triggerInfo.payload.userName,
+            },
+          });
+        }
+      }),
     ],
   },
   logger:
