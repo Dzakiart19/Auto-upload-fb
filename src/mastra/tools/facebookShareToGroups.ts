@@ -2,6 +2,7 @@ import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
 import * as fs from "fs";
 import * as path from "path";
+import { getFacebookCredentials } from "./facebookHelpers";
 
 export const facebookShareToGroups = createTool({
   id: "facebook-share-to-groups",
@@ -30,11 +31,15 @@ export const facebookShareToGroups = createTool({
     const logger = mastra?.getLogger();
     logger?.info('🔧 [facebookShareToGroups] Starting execution with params:', context);
     
-    const pageAccessToken = process.env.FB_PAGE_ACCESS_TOKEN;
-    const pageId = process.env.FB_PAGE_ID;
+    let pageAccessToken: string;
+    let pageId: string;
     
-    if (!pageAccessToken || !pageId) {
-      logger?.error('❌ [facebookShareToGroups] Missing Facebook credentials');
+    try {
+      const credentials = await getFacebookCredentials(logger);
+      pageAccessToken = credentials.pageAccessToken;
+      pageId = credentials.pageId;
+    } catch (error: any) {
+      logger?.error('❌ [facebookShareToGroups] Failed to get Facebook credentials:', error.message);
       return {
         success: false,
         totalGroups: 0,
