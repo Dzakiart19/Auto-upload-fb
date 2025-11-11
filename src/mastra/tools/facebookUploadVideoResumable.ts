@@ -110,7 +110,6 @@ export const facebookUploadVideoResumable = createTool({
       logger?.info('📤 [facebookUploadVideoResumable] Step 2: Uploading video file...');
       
       const form = new FormData();
-      form.append('access_token', pageAccessToken);
       form.append('upload_phase', 'transfer');
       form.append('start_offset', '0');
       form.append('upload_session_id', uploadSessionId);
@@ -119,7 +118,7 @@ export const facebookUploadVideoResumable = createTool({
         contentType: 'video/mp4',
       });
       
-      const uploadUrl = `https://graph-video.facebook.com/v19.0/${pageId}/videos`;
+      const uploadUrl = `https://graph-video.facebook.com/v19.0/${pageId}/videos?access_token=${pageAccessToken}`;
       
       const uploadResponse = await fetch(uploadUrl, {
         method: 'POST',
