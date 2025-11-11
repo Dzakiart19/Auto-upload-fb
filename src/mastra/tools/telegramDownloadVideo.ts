@@ -78,6 +78,32 @@ export const telegramDownloadVideo = createTool({
       
       // Save file to temporary directory
       const buffer = await downloadResponse.arrayBuffer();
+      const bufferData = Buffer.from(buffer);
+      
+      logger?.info('📊 [telegramDownloadVideo] Downloaded buffer info:', {
+        byteLength: buffer.byteLength,
+        bufferLength: bufferData.length,
+        expectedSize: fileSize
+      });
+      
+      // Validate buffer size
+      if (bufferData.length === 0) {
+        logger?.error('❌ [telegramDownloadVideo] Downloaded buffer is empty!');
+        return {
+          success: false,
+          error: 'File yang di-download kosong (0 bytes)',
+        };
+      }
+      
+      // Check if buffer size matches expected size (with some tolerance)
+      if (fileSize > 0 && Math.abs(bufferData.length - fileSize) > 1000) {
+        logger?.warn('⚠️ [telegramDownloadVideo] Size mismatch:', {
+          expected: fileSize,
+          actual: bufferData.length,
+          difference: Math.abs(bufferData.length - fileSize)
+        });
+      }
+      
       const fileName = context.fileName || `video_${Date.now()}.mp4`;
       const tmpDir = '/tmp/telegram_videos';
       
@@ -87,17 +113,29 @@ export const telegramDownloadVideo = createTool({
       }
       
       const localFilePath = path.join(tmpDir, fileName);
-      fs.writeFileSync(localFilePath, Buffer.from(buffer));
+      fs.writeFileSync(localFilePath, bufferData);
       
+      // Verify file was written correctly
+      const stats = fs.statSync(localFilePath);
       logger?.info('✅ [telegramDownloadVideo] Video downloaded successfully:', { 
         localFilePath, 
-        fileSize: buffer.byteLength 
+        fileSize: stats.size,
+        expectedSize: fileSize,
+        bufferSize: bufferData.length
       });
+      
+      if (stats.size === 0) {
+        logger?.error('❌ [telegramDownloadVideo] Written file is empty!');
+        return {
+          success: false,
+          error: 'File tersimpan dengan ukuran 0 bytes',
+        };
+      }
       
       return {
         success: true,
         filePath: localFilePath,
-        fileSize: buffer.byteLength,
+        fileSize: stats.size,
       };
       
     } catch (error: any) {
