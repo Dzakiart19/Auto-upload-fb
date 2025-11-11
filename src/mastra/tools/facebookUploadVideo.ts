@@ -2,6 +2,7 @@ import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
 import * as fs from "fs";
 import FormData from "form-data";
+import { getFacebookCredentials } from "./facebookHelpers";
 
 export const facebookUploadVideo = createTool({
   id: "facebook-upload-video",
@@ -29,14 +30,18 @@ export const facebookUploadVideo = createTool({
       descriptionLength: context.description.length,
     });
     
-    const pageAccessToken = process.env.FB_PAGE_ACCESS_TOKEN;
-    const pageId = process.env.FB_PAGE_ID;
+    let pageAccessToken: string;
+    let pageId: string;
     
-    if (!pageAccessToken || !pageId) {
-      logger?.error('❌ [facebookUploadVideo] Missing Facebook credentials');
+    try {
+      const credentials = await getFacebookCredentials(logger);
+      pageAccessToken = credentials.pageAccessToken;
+      pageId = credentials.pageId;
+    } catch (error: any) {
+      logger?.error('❌ [facebookUploadVideo] Failed to get Facebook credentials:', error.message);
       return {
         success: false,
-        error: "FB_PAGE_ACCESS_TOKEN atau FB_PAGE_ID tidak ditemukan",
+        error: `Kredensial Facebook tidak valid: ${error.message}`,
       };
     }
     
