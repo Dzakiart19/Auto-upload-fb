@@ -1,6 +1,167 @@
 import { createStep, createWorkflow } from "../inngest";
 import { z } from "zod";
 import { facebookVideoAgent } from "../agents/facebookVideoAgent";
+import { telegramDownloadVideo } from "../tools/telegramDownloadVideo";
+import { facebookUploadVideo } from "../tools/facebookUploadVideo";
+import { facebookShareToGroups } from "../tools/facebookShareToGroups";
+import { telegramSendMessage } from "../tools/telegramSendMessage";
+
+// Check if AI should be used or fallback to direct tool calls
+const shouldUseAI = () => {
+  const hasOpenAIKey = !!process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim() !== '';
+  const fallbackEnabled = process.env.AI_FALLBACK_ENABLED !== 'false'; // Default true
+  return hasOpenAIKey && !fallbackEnabled;
+};
+
+// Fallback: Direct tool execution without AI
+const processVideoDirectly = async (inputData: any, mastra: any) => {
+  const logger = mastra?.getLogger();
+  
+  logger?.info("⚠️ [AI Mode] FALLBACK - Running without AI, using direct tool calls");
+  logger?.info("📝 [processVideoDirectly] Starting direct video processing...");
+  
+  let videoUrl = '';
+  let videoId = '';
+  let downloadSuccess = false;
+  let uploadSuccess = false;
+  let shareResults = { totalGroups: 0, successCount: 0, failCount: 0 };
+  
+  try {
+    // Step 1: Download video from Telegram
+    logger?.info("📥 [Step 1/4] Downloading video from Telegram...");
+    const downloadResult = await telegramDownloadVideo.execute({
+      context: {
+        fileId: inputData.fileId,
+        fileName: `video_${Date.now()}.mp4`
+      },
+      mastra,
+      runtimeContext: {}
+    });
+    
+    if (!downloadResult.success || !downloadResult.filePath) {
+      throw new Error(`Download gagal: ${downloadResult.error || 'Unknown error'}`);
+    }
+    
+    downloadSuccess = true;
+    logger?.info("✅ [Step 1/4] Video downloaded successfully");
+    
+    // Step 2: Upload video to Facebook Page
+    logger?.info("📤 [Step 2/4] Uploading video to Facebook Page...");
+    const uploadResult = await facebookUploadVideo.execute({
+      context: {
+        videoPath: downloadResult.filePath,
+        title: inputData.title,
+        description: inputData.description
+      },
+      mastra,
+      runtimeContext: {}
+    });
+    
+    if (!uploadResult.success || !uploadResult.videoUrl) {
+      throw new Error(`Upload gagal: ${uploadResult.error || 'Unknown error'}`);
+    }
+    
+    uploadSuccess = true;
+    videoUrl = uploadResult.videoUrl!;
+    videoId = uploadResult.videoId!;
+    logger?.info("✅ [Step 2/4] Video uploaded to Facebook:", videoUrl);
+    
+    // Step 3: Share to Facebook Groups
+    logger?.info("📢 [Step 3/4] Sharing to Facebook Groups...");
+    const shareResult = await facebookShareToGroups.execute({
+      context: {
+        videoUrl: videoUrl,
+        videoId: videoId,
+        message: `${inputData.title}\n\n${inputData.description}`
+      },
+      mastra,
+      runtimeContext: {}
+    });
+    
+    shareResults = {
+      totalGroups: shareResult.totalGroups,
+      successCount: shareResult.successCount,
+      failCount: shareResult.failCount
+    };
+    
+    logger?.info("✅ [Step 3/4] Sharing complete:", shareResults);
+    
+    // Step 4: Send confirmation to user
+    logger?.info("📨 [Step 4/4] Sending confirmation to user...");
+    const confirmationMessage = `
+✅ *Video berhasil diupload!*
+
+📹 *Judul:* ${inputData.title}
+📝 *Deskripsi:* ${inputData.description}
+
+🔗 *Link Video:*
+${videoUrl}
+
+📊 *Hasil Sharing ke Grup:*
+• Total grup: ${shareResults.totalGroups}
+• Berhasil: ${shareResults.successCount}
+• Gagal: ${shareResults.failCount}
+
+${shareResults.totalGroups === 0 ? '⚠️ Tidak ada grup Facebook di groups.txt' : ''}
+${shareResults.successCount > 0 ? '✅ Video sudah dibagikan ke grup Facebook!' : ''}
+
+_Video diproses tanpa AI (mode fallback)_
+    `.trim();
+    
+    await telegramSendMessage.execute({
+      context: {
+        chatId: inputData.chatId,
+        message: confirmationMessage
+      },
+      mastra,
+      runtimeContext: {}
+    });
+    
+    logger?.info("✅ [Step 4/4] Confirmation sent to user");
+    
+    return {
+      success: true,
+      videoUrl,
+      shareResults,
+      message: confirmationMessage
+    };
+    
+  } catch (error: any) {
+    logger?.error("❌ [processVideoDirectly] Error:", error);
+    
+    // Send error notification
+    try {
+      let errorMessage = `❌ *Maaf, terjadi error saat memproses video*\n\n`;
+      
+      if (!downloadSuccess) {
+        errorMessage += `📥 Download video: GAGAL\n${error.message}\n\n`;
+      } else if (!uploadSuccess) {
+        errorMessage += `📥 Download video: SUKSES\n📤 Upload ke Facebook: GAGAL\n${error.message}\n\n`;
+      } else {
+        errorMessage += `📥 Download: SUKSES\n📤 Upload: SUKSES\n📢 Share: ERROR\n${error.message}\n\n`;
+      }
+      
+      errorMessage += `Silakan coba lagi atau hubungi admin.`;
+      
+      await telegramSendMessage.execute({
+        context: {
+          chatId: inputData.chatId,
+          message: errorMessage
+        },
+        mastra,
+        runtimeContext: {}
+      });
+    } catch (notifError) {
+      logger?.error("❌ Failed to send error notification:", notifError);
+    }
+    
+    return {
+      success: false,
+      shareResults,
+      message: `Error: ${error.message}`
+    };
+  }
+};
 
 const processVideoUpload = createStep({
   id: "process-video-upload",
@@ -34,6 +195,21 @@ const processVideoUpload = createStep({
       title: inputData.title,
     });
     
+    // Check AI availability
+    const hasOpenAIKey = !!process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim() !== '';
+    const useAI = hasOpenAIKey && process.env.AI_FALLBACK_ENABLED !== 'true';
+    
+    logger?.info(`[AI] Mode: ${useAI ? 'AI ACTIVE' : 'FALLBACK (Direct Tools)'}`);
+    logger?.info(`[AI] OpenAI Key: ${hasOpenAIKey ? 'Present' : 'Missing'}`);
+    logger?.info(`[AI] Fallback Enabled: ${process.env.AI_FALLBACK_ENABLED || 'default (false)'}`);
+    
+    // If no AI, use direct tool execution
+    if (!useAI || !hasOpenAIKey) {
+      logger?.info("⚠️ AI sedang offline atau dinonaktifkan, menggunakan mode fallback");
+      return await processVideoDirectly(inputData, mastra);
+    }
+    
+    // Try AI mode with fallback on error
     try {
       const prompt = `
 Saya memiliki video dari Telegram yang perlu di-upload ke Facebook Page dan dibagikan ke grup-grup Facebook.
@@ -59,7 +235,7 @@ Jika ada error di langkah manapun, tetap lanjutkan ke langkah berikutnya yang ma
 Berikan saya ringkasan hasil akhir dari semua langkah tersebut.
       `;
       
-      logger?.info("📝 [processVideoUpload] Calling agent to process video...");
+      logger?.info("📝 [processVideoUpload] Calling AI agent to process video...");
       
       const response = await facebookVideoAgent.generateLegacy(
         [{ role: "user", content: prompt }],
@@ -70,7 +246,7 @@ Berikan saya ringkasan hasil akhir dari semua langkah tersebut.
         }
       );
       
-      logger?.info("✅ [processVideoUpload] Agent processing complete");
+      logger?.info("✅ [processVideoUpload] AI agent processing complete");
       
       // Parse response untuk extract informasi penting
       const responseText = response.text;
@@ -92,7 +268,7 @@ Berikan saya ringkasan hasil akhir dari semua langkah tersebut.
       // Success adalah true jika ada video URL dan tidak ada error kritis
       const overallSuccess = videoUrl !== undefined && !hasError;
       
-      logger?.info("📊 [processVideoUpload] Results:", {
+      logger?.info("📊 [processVideoUpload] AI Results:", {
         overallSuccess,
         hasVideoUrl: !!videoUrl,
         hasError,
@@ -110,28 +286,11 @@ Berikan saya ringkasan hasil akhir dari semua langkah tersebut.
       };
       
     } catch (error: any) {
-      logger?.error("❌ [processVideoUpload] Error:", error);
+      logger?.error("❌ [processVideoUpload] AI Error, switching to fallback:", error.message);
+      logger?.warn("⚠️ Beralih ke mode fallback karena AI error");
       
-      // Even on error, try to send notification to user
-      try {
-        const errorMessage = `❌ Maaf, terjadi error saat memproses video:\n\n${error.message}\n\nSilakan coba lagi atau hubungi admin.`;
-        
-        await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: inputData.chatId,
-            text: errorMessage,
-          }),
-        });
-      } catch (notifError) {
-        logger?.error("❌ [processVideoUpload] Failed to send error notification:", notifError);
-      }
-      
-      return {
-        success: false,
-        message: `Error: ${error.message}`,
-      };
+      // Fallback to direct processing if AI fails
+      return await processVideoDirectly(inputData, mastra);
     }
   },
 });

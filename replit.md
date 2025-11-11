@@ -51,6 +51,45 @@ https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://fc29960b-e4e3-4b9b-8c
 - URL `.replit.dev` adalah URL gratis yang aktif saat aplikasi running
 - URL `.replit.app` memerlukan deployment berbayar (tidak diperlukan untuk bot ini)
 
+### Mode AI Fallback (PENTING):
+
+**Bot ini bisa berjalan dengan atau tanpa OpenAI API!**
+
+**Mode Operasi:**
+1. **AI Mode** (jika OPENAI_API_KEY tersedia dan valid):
+   - Bot menggunakan AI agent untuk mengkoordinasi proses upload
+   - AI agent secara otomatis memanggil tools yang diperlukan
+   - Memberikan respons yang lebih natural dan fleksibel
+
+2. **Fallback Mode** (jika OPENAI_API_KEY tidak ada/invalid):
+   - Bot langsung menjalankan tools tanpa AI
+   - Menggunakan judul & deskripsi dari user tanpa modifikasi
+   - Tetap berfungsi 100% untuk upload video!
+   - Tidak ada crash atau error "Incorrect API key"
+
+**Environment Variable:**
+```bash
+# Set ke 'true' untuk selalu gunakan mode fallback (tanpa AI)
+# Set ke 'false' atau hapus untuk gunakan AI jika tersedia
+AI_FALLBACK_ENABLED=true
+```
+
+**Log Status:**
+Saat workflow berjalan, cek log untuk melihat mode yang aktif:
+```
+[AI] Mode: AI ACTIVE / FALLBACK (Direct Tools)
+[AI] OpenAI Key: Present / Missing
+[AI] Fallback Enabled: true / false
+```
+
+**Upload Status:**
+```
+[Upload] Status: 
+  📥 Download video: SUKSES/GAGAL
+  📤 Upload ke Facebook: SUKSES/GAGAL
+  📢 Share ke grup: SUKSES/GAGAL
+```
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -118,10 +157,15 @@ Preferred communication style: Simple, everyday language.
 
 # External Dependencies
 
-## AI Services
-- **OpenAI**: Primary LLM provider (requires `OPENAI_API_KEY`)
+## AI Services (OPTIONAL)
+- **OpenAI**: Primary LLM provider (optional - requires `OPENAI_API_KEY`)
+  - Jika tersedia: bot menggunakan AI agent untuk koordinasi
+  - Jika tidak tersedia: bot tetap berfungsi dengan mode fallback (direct tools)
 - **OpenRouter**: Alternative AI provider gateway (via `@openrouter/ai-sdk-provider`)
 - **Model Support**: 803 models across 47 providers via Mastra's unified router
+- **AI_FALLBACK_ENABLED**: Environment variable untuk kontrol mode AI (default: false)
+  - Set `true` untuk paksa gunakan mode non-AI
+  - Set `false` atau hapus untuk gunakan AI jika API key tersedia
 
 ## Messaging Platforms
 - **Telegram Bot API**: Video reception and user interaction (requires `TELEGRAM_BOT_TOKEN`)

@@ -1,0 +1,90 @@
+================================================
+PANDUAN MODE AI FALLBACK
+================================================
+
+Bot Telegram ini bisa berjalan TANPA OpenAI API!
+
+================================================
+CARA KERJA:
+================================================
+
+1. DENGAN OpenAI API (AI Mode):
+   ✅ OPENAI_API_KEY tersedia
+   ✅ Bot menggunakan AI agent
+   ✅ Respons lebih natural & fleksibel
+
+2. TANPA OpenAI API (Fallback Mode):
+   ⚠️  OPENAI_API_KEY kosong/invalid
+   ✅ Bot langsung jalankan tools
+   ✅ Video tetap diupload 100%!
+   ✅ Tidak ada error/crash!
+
+================================================
+ENVIRONMENT VARIABLES:
+================================================
+
+# Mode 1: Paksa gunakan Fallback (tanpa AI)
+AI_FALLBACK_ENABLED=true
+
+# Mode 2: Gunakan AI jika tersedia
+AI_FALLBACK_ENABLED=false
+# atau hapus variable ini
+
+================================================
+CEK MODE AKTIF DI LOG:
+================================================
+
+Saat workflow berjalan, cek log:
+INFO [AI] Mode: AI ACTIVE / FALLBACK (Direct Tools)
+INFO [AI] OpenAI Key: Present / Missing
+INFO [AI] Fallback Enabled: true / false
+
+================================================
+PROSES UPLOAD DI MODE FALLBACK:
+================================================
+
+Step 1/4: 📥 Download video dari Telegram
+Step 2/4: 📤 Upload video ke Facebook Page  
+Step 3/4: 📢 Share ke Facebook Groups
+Step 4/4: 📨 Kirim konfirmasi ke user
+
+Semua langkah tetap berjalan sempurna!
+
+================================================
+PESAN KONFIRMASI:
+================================================
+
+✅ Video berhasil diupload!
+
+📹 Judul: (judul dari user)
+📝 Deskripsi: (deskripsi dari user)
+
+🔗 Link Video:
+https://www.facebook.com/...
+
+📊 Hasil Sharing ke Grup:
+• Total grup: X
+• Berhasil: Y
+• Gagal: Z
+
+_Video diproses tanpa AI (mode fallback)_
+
+================================================
+KEUNTUNGAN MODE FALLBACK:
+================================================
+
+✅ GRATIS - Tidak perlu OpenAI API key
+✅ CEPAT - Tidak ada latensi API call
+✅ STABIL - Tidak tergantung service eksternal
+✅ SIMPLE - Langsung pakai input user
+
+================================================
+TESTING MODE FALLBACK:
+================================================
+
+1. Hapus OPENAI_API_KEY dari Secrets
+2. Restart server bot
+3. Kirim video ke bot Telegram
+4. Bot tetap upload ke Facebook!
+
+================================================
