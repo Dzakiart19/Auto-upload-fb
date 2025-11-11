@@ -56,16 +56,23 @@ export const facebookUploadVideo = createTool({
       }
       
       logger?.info('📝 [facebookUploadVideo] Uploading video to Facebook Page...');
+      logger?.info('🔑 [facebookUploadVideo] Using credentials:', {
+        pageId,
+        tokenLength: pageAccessToken.length,
+        tokenPrefix: pageAccessToken.substring(0, 20) + '...',
+      });
       
       // Create form data for video upload
       const formData = new FormData();
       formData.append('source', fs.createReadStream(context.videoPath));
       formData.append('title', context.title);
       formData.append('description', context.description);
-      formData.append('access_token', pageAccessToken);
       
       // Upload video to Facebook Page
-      const uploadUrl = `https://graph-video.facebook.com/v19.0/${pageId}/videos`;
+      // Note: access_token is passed in URL to avoid FormData compatibility issues
+      const uploadUrl = `https://graph-video.facebook.com/v19.0/${pageId}/videos?access_token=${encodeURIComponent(pageAccessToken)}`;
+      
+      logger?.info('📤 [facebookUploadVideo] Sending request to Facebook API');
       
       const uploadResponse = await fetch(uploadUrl, {
         method: 'POST',
