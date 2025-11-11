@@ -115,6 +115,7 @@ export const facebookUploadVideoResumable = createTool({
         access_token: pageAccessToken,
         upload_phase: 'transfer',
         upload_session_id: uploadSessionId,
+        start_offset: '0',
       });
       
       const uploadResponse = await fetch(`${uploadUrl}?${uploadParams}`, {
