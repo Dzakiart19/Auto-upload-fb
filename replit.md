@@ -15,23 +15,27 @@ Bot ini memungkinkan pengguna untuk:
 
 ### URL Publik & Webhook Setup:
 
-**URL Publik Server (GRATIS):**
-- Development: `https://workspace.fenevim600.replit.dev`
-- Status: `https://workspace.fenevim600.replit.dev/status`
-- Webhook Telegram: `https://workspace.fenevim600.replit.dev/webhooks/telegram/action`
+**URL Publik Server (GRATIS & AKTIF):**
+- Public URL: `https://fc29960b-e4e3-4b9b-8c10-ae56d2cc19bf-00-30plge0szoe05.pike.replit.dev`
+- Status: `https://fc29960b-e4e3-4b9b-8c10-ae56d2cc19bf-00-30plge0szoe05.pike.replit.dev/status`
+- Keep-Alive: `https://fc29960b-e4e3-4b9b-8c10-ae56d2cc19bf-00-30plge0szoe05.pike.replit.dev/ping`
+- Webhook Telegram: `https://fc29960b-e4e3-4b9b-8c10-ae56d2cc19bf-00-30plge0szoe05.pike.replit.dev/webhooks/telegram/action`
 
-**Cara Setup Telegram Webhook:**
-1. Ganti `<TOKEN>` dengan TELEGRAM_BOT_TOKEN Anda
-2. Kunjungi URL ini di browser:
-   ```
-   https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://workspace.fenevim600.replit.dev/webhooks/telegram/action
-   ```
-3. Pastikan mendapat response: `{"ok":true,"result":true,"description":"Webhook was set"}`
+**Status Webhook:**
+✅ **WEBHOOK SUDAH TERSET OTOMATIS!**
+
+Server secara otomatis mengatur webhook Telegram saat startup. Tidak perlu setup manual!
 
 **Cara Verifikasi Webhook:**
 Cek apakah webhook sudah terset dengan benar:
-```
+```bash
 https://api.telegram.org/bot<TOKEN>/getWebhookInfo
+```
+
+**Cara Setup Manual (jika diperlukan):**
+Jika webhook belum terset, jalankan:
+```bash
+https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://fc29960b-e4e3-4b9b-8c10-ae56d2cc19bf-00-30plge0szoe05.pike.replit.dev/webhooks/telegram/action
 ```
 
 ### Cara Penggunaan Bot:

@@ -114,16 +114,22 @@ export const mastra = new Mastra({
     ],
     apiRoutes: [
       // ======================================================================
-      // Health Check & Status Endpoint
+      // Health Check & Status Endpoints
       // ======================================================================
       {
         path: "/",
         method: "GET",
         createHandler: async () => {
           return async (c) => {
-            const replSlug = process.env.REPL_SLUG || "workspace";
-            const replOwner = process.env.REPL_OWNER || "unknown";
-            const publicUrl = `https://${replSlug}.${replOwner}.replit.dev`;
+            const getPublicUrl = () => {
+              if (process.env.REPLIT_DEV_DOMAIN) {
+                return `https://${process.env.REPLIT_DEV_DOMAIN}`;
+              }
+              const replSlug = process.env.REPL_SLUG || "workspace";
+              const replOwner = process.env.REPL_OWNER || "unknown";
+              return `https://${replSlug}.${replOwner}.replit.dev`;
+            };
+            const publicUrl = getPublicUrl();
             
             return c.json({
               status: "✅ Server Aktif",
@@ -132,6 +138,8 @@ export const mastra = new Mastra({
               webhookUrl: `${publicUrl}/webhooks/telegram/action`,
               endpoints: {
                 telegram: "/webhooks/telegram/action",
+                status: "/status",
+                ping: "/ping",
                 playground: "http://0.0.0.0:5000/",
                 inngest: "/api/inngest"
               },
@@ -145,15 +153,35 @@ export const mastra = new Mastra({
         method: "GET",
         createHandler: async () => {
           return async (c) => {
-            const replSlug = process.env.REPL_SLUG || "workspace";
-            const replOwner = process.env.REPL_OWNER || "unknown";
-            const publicUrl = `https://${replSlug}.${replOwner}.replit.dev`;
+            const getPublicUrl = () => {
+              if (process.env.REPLIT_DEV_DOMAIN) {
+                return `https://${process.env.REPLIT_DEV_DOMAIN}`;
+              }
+              const replSlug = process.env.REPL_SLUG || "workspace";
+              const replOwner = process.env.REPL_OWNER || "unknown";
+              return `https://${replSlug}.${replOwner}.replit.dev`;
+            };
+            const publicUrl = getPublicUrl();
             
             return c.json({
               status: "online",
               publicUrl: publicUrl,
               webhookUrl: `${publicUrl}/webhooks/telegram/action`,
               timestamp: new Date().toISOString()
+            });
+          };
+        },
+      },
+      {
+        path: "/ping",
+        method: "GET",
+        createHandler: async () => {
+          return async (c) => {
+            return c.json({
+              status: "pong",
+              uptime: process.uptime(),
+              timestamp: new Date().toISOString(),
+              message: "Server is alive"
             });
           };
         },
@@ -310,19 +338,66 @@ if (Object.keys(mastra.getAgents()).length > 1) {
   );
 }
 
-// Display public URL on startup
-const replSlug = process.env.REPL_SLUG || "workspace";
-const replOwner = process.env.REPL_OWNER || "unknown";
-const publicUrl = `https://${replSlug}.${replOwner}.replit.dev`;
+// Display public URL on startup with proper URL detection
+const getPublicUrl = () => {
+  // Priority 1: Use REPLIT_DEV_DOMAIN if available (most reliable)
+  if (process.env.REPLIT_DEV_DOMAIN) {
+    return `https://${process.env.REPLIT_DEV_DOMAIN}`;
+  }
+  
+  // Priority 2: Build from REPL_SLUG and REPL_OWNER
+  const replSlug = process.env.REPL_SLUG || "workspace";
+  const replOwner = process.env.REPL_OWNER || "unknown";
+  
+  // Try .replit.dev first, fallback to .repl.co
+  return `https://${replSlug}.${replOwner}.replit.dev`;
+};
+
+const publicUrl = getPublicUrl();
 const logger = mastra.getLogger();
 
 logger?.info("🚀 ========================================");
 logger?.info("🎬 Bot Telegram untuk Upload Video ke Facebook");
 logger?.info("🚀 ========================================");
-logger?.info(`🌍 URL Publik: ${publicUrl}`);
+logger?.info(`🌍 URL Publik AKTIF: ${publicUrl}`);
 logger?.info(`📡 Webhook Telegram: ${publicUrl}/webhooks/telegram/action`);
-logger?.info(`📊 Status: ${publicUrl}/status`);
+logger?.info(`📊 Status Endpoint: ${publicUrl}/status`);
+logger?.info(`❤️  Keep-Alive: ${publicUrl}/ping`);
 logger?.info("🚀 ========================================");
 logger?.info("📝 Setup Telegram Webhook:");
 logger?.info(`   https://api.telegram.org/bot<TOKEN>/setWebhook?url=${publicUrl}/webhooks/telegram/action`);
+logger?.info("📝 Verifikasi Webhook:");
+logger?.info(`   https://api.telegram.org/bot<TOKEN>/getWebhookInfo`);
 logger?.info("🚀 ========================================");
+
+// Auto-setup webhook if TELEGRAM_BOT_TOKEN is available
+const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
+if (telegramToken) {
+  const webhookUrl = `${publicUrl}/webhooks/telegram/action`;
+  const setWebhookUrl = `https://api.telegram.org/bot${telegramToken}/setWebhook?url=${webhookUrl}`;
+  
+  logger?.info("🔄 Auto-setting Telegram webhook...");
+  
+  fetch(setWebhookUrl)
+    .then(res => res.json())
+    .then(data => {
+      if (data.ok) {
+        logger?.info("✅ Telegram webhook berhasil di-set!");
+        logger?.info(`   Webhook URL: ${webhookUrl}`);
+        
+        // Verify webhook
+        fetch(`https://api.telegram.org/bot${telegramToken}/getWebhookInfo`)
+          .then(res => res.json())
+          .then(info => {
+            logger?.info("📊 Webhook Info:", info.result);
+          })
+          .catch(err => logger?.warn("⚠️  Gagal verifikasi webhook:", err.message));
+      } else {
+        logger?.warn("⚠️  Gagal set webhook:", data);
+      }
+    })
+    .catch(err => {
+      logger?.warn("⚠️  Gagal menghubungi Telegram API:", err.message);
+      logger?.info("💡 Silakan set webhook manual dengan URL di atas");
+    });
+}
