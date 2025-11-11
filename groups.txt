@@ -1,0 +1,5 @@
+# Facebook Group IDs
+# Tambahkan satu ID grup per baris
+# Contoh:
+# 123456789012345
+# 987654321098765
