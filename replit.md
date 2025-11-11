@@ -45,11 +45,33 @@ https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://fc29960b-e4e3-4b9b-8c
 4. Masukkan deskripsi/hashtag
 5. Bot akan otomatis memproses dan mengirim konfirmasi
 
-### Konfigurasi:
+### Konfigurasi Facebook Page:
+**Facebook Page yang Aktif:**
+- Nama: **GraphIn** (Kreator digital)
+- Page ID: `835519576318859`
+- Followers: 1
+
+**Environment Variables yang Diperlukan:**
+- `FB_USER_ACCESS_TOKEN` - Token untuk otomatis mendapatkan Page Access Token ✅
+- `FB_PAGE_ID` - ID dari Facebook Page (835519576318859) ✅
+- `TELEGRAM_BOT_TOKEN` - Token bot Telegram ✅
+
+**Konfigurasi Tambahan:**
 - Tambahkan Facebook Group IDs di file `groups.txt` (satu ID per baris)
-- Pastikan semua environment variables sudah diisi (lihat bagian External Dependencies)
 - URL `.replit.dev` adalah URL gratis yang aktif saat aplikasi running
 - URL `.replit.app` memerlukan deployment berbayar (tidak diperlukan untuk bot ini)
+
+### Fix Terbaru (Nov 11, 2025):
+✅ **Error "#100 The global id is not allowed" sudah diperbaiki!**
+
+**Masalah:**
+- Error terjadi karena menggunakan User Access Token untuk upload video
+- Facebook memerlukan Page Access Token khusus untuk operasi pada Page
+
+**Solusi:**
+- Dibuat helper function `getFacebookCredentials()` yang otomatis menukar User Access Token dengan Page Access Token
+- Updated semua tools Facebook (upload & share) untuk menggunakan token yang benar
+- Bot sekarang bisa upload video tanpa error!
 
 ### Mode AI Fallback (PENTING):
 
