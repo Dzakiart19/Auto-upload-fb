@@ -84,8 +84,22 @@ Berikan saya ringkasan hasil akhir dari semua langkah tersebut.
       const failMatch = responseText.match(/(\d+)\s*(?:grup)?\s*gagal/i);
       const totalMatch = responseText.match(/(\d+)\s*(?:total)?\s*grup/i);
       
+      // Detect errors dalam response
+      const hasError = responseText.toLowerCase().includes('error') || 
+                       responseText.toLowerCase().includes('gagal') ||
+                       responseText.toLowerCase().includes('tidak berhasil');
+      
+      // Success adalah true jika ada video URL dan tidak ada error kritis
+      const overallSuccess = videoUrl !== undefined && !hasError;
+      
+      logger?.info("📊 [processVideoUpload] Results:", {
+        overallSuccess,
+        hasVideoUrl: !!videoUrl,
+        hasError,
+      });
+      
       return {
-        success: true,
+        success: overallSuccess,
         videoUrl,
         shareResults: {
           totalGroups: totalMatch ? parseInt(totalMatch[1]) : 0,
