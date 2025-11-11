@@ -1,0 +1,82 @@
+
+You are a senior full-stack Python developer. 
+Create a complete working Telegram bot project that uploads videos automatically to a Facebook Page, and after successful upload, shares the post to multiple Facebook Groups. The bot must use the Facebook Graph API and python-telegram-bot library.
+
+🧩 BOT FUNCTIONALITY:
+
+1. When the user sends a video to the bot:
+   - The bot downloads the video file.
+   - Asks the user for a video title.
+   - Asks for hashtags.
+   - Uploads the video to a Facebook Page using the PAGE_ACCESS_TOKEN and PAGE_ID.
+   - After upload success, shares the video post automatically to all Facebook Groups listed in a file `groups.txt`.
+   - Finally, sends a Telegram confirmation message with the post link and share status.
+
+2. Include error handling for:
+   - Expired access tokens
+   - Network errors
+   - Invalid group IDs
+
+3. Use asynchronous code and logging for debugging.
+
+4. Create a `.env` file with:
+   TELEGRAM_BOT_TOKEN=your_telegram_bot_token
+   FB_PAGE_ACCESS_TOKEN=your_facebook_page_access_token
+   FB_PAGE_ID=your_facebook_page_id
+
+5. Create a `groups.txt` file with one Facebook group ID per line. Example:
+
+123456789012345 987654321098765
+
+6. Use the following Facebook Graph API endpoints:
+- Upload video:
+  POST https://graph-video.facebook.com/v19.0/{FB_PAGE_ID}/videos
+- Share post to groups:
+  POST https://graph.facebook.com/v19.0/{GROUP_ID}/feed
+
+7. When sharing, include the video link and a simple message like:
+“🔥 New video just uploaded! Watch now: https://www.facebook.com/{FB_PAGE_ID}/videos/{VIDEO_ID}”
+
+8. Print log messages in console for every major step:
+- “Received video”
+- “Uploading to Facebook...”
+- “Uploaded successfully: {video_id}”
+- “Sharing to group {group_id}...”
+- “Share result: success or fail”
+
+📁 PROJECT STRUCTURE:
+- main.py
+- .env
+- groups.txt
+- requirements.txt
+
+🧠 REQUIREMENTS:
+- python-telegram-bot==20.3
+- requests
+- python-dotenv
+
+✅ Bot must start with `/start` command:
+Sends: “🎬 Kirim video yang ingin kamu upload ke Facebook Page!”
+
+✅ All responses to users are in Indonesian, friendly, and simple.
+
+
+---
+
+🚀 Setelah kamu tempel ke Replit:
+
+AI-nya akan otomatis:
+
+Membuat file main.py, .env, groups.txt, dan requirements.txt
+
+Menulis seluruh kode bot siap jalan
+
+Kamu tinggal isi .env sesuai token kamu:
+
+TELEGRAM_BOT_TOKEN=xxxx
+FB_PAGE_ACCESS_TOKEN=xxxx
+FB_PAGE_ID=xxxx
+
+Isi groups.txt dengan ID grup FB (satu per baris)
+
+Klik tombol ▶️ Run
