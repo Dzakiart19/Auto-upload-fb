@@ -6,6 +6,12 @@ The application allows users to send **videos or photos** through Telegram, prov
 
 Key capabilities include:
 - **Media Type Support**: Handles both videos and photos from Telegram
+- **Engagement Optimization** (November 2025):
+  - **Auto-generated Engaging Captions**: Emoji-rich captions with call-to-action tailored by content category
+  - **Trending Hashtags**: Auto-generated hashtags (up to 15) based on category, title keywords, and global trends
+  - **Category Detection**: Automatically detects content category (meme, gaming, tutorial, etc.) for optimized captions
+  - **Multi-language Support**: Indonesian and English hashtag generation
+  - **Viral Formula**: Combines hooks, emojis, call-to-action, and engagement footers
 - **Video Processing**: 
   - Automatic format conversion using FFmpeg to ensure Facebook compatibility
   - Smart upload method selection (simple vs. resumable based on file size)
@@ -62,6 +68,16 @@ Preferred communication style: Simple, everyday language.
 - **Mastra Playground UI**: Visualizes workflow graphs and nodes for development.
 
 ## Technical Implementations
+- **Engagement Optimization System** (November 2025):
+    - **Tool**: `generateEngagingCaption` - Creates viral-worthy captions with emojis and call-to-action
+    - **Categories Supported**: meme, comedy, tutorial, motivasi, gaming, lifestyle, teknologi, kuliner, travel, music, sports, general
+    - **Caption Structure**: Hook + Title + Emoji + CTA + Engagement footer
+    - **Customizable**: Language (ID/EN), category-specific templates
+    - **Tool**: `generateTrendingHashtags` - Generates trending hashtags for maximum discoverability
+    - **Hashtag Sources**: Category-specific (ID + EN), title keywords, universal trending, global viral hashtags
+    - **Max Hashtags**: Configurable (default 15)
+    - **Integration**: Automatically applied to all video/photo uploads in fallback mode
+    - **AI Mode**: Agent instructed to use these tools for all uploads
 - **Media Type Branching** (November 2025):
     - **Unified Workflow**: Single workflow handles both videos and photos with intelligent branching
     - **Video Flow**: download → FFmpeg convert → upload → share to groups → notify
