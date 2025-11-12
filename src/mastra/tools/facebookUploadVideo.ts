@@ -2,7 +2,7 @@ import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
 import * as fs from "fs";
 import FormData from "form-data";
-import { getFacebookCredentials } from "./facebookHelpers";
+import { getFacebookCredentials, getVideoMetadata, validateVideoFile } from "./facebookHelpers";
 
 export const facebookUploadVideo = createTool({
   id: "facebook-upload-video",
@@ -81,6 +81,21 @@ export const facebookUploadVideo = createTool({
         };
       }
       
+      // Validate video file signature
+      logger?.info('🔍 [facebookUploadVideo] Validating video file...');
+      const isValid = validateVideoFile(context.videoPath, logger);
+      if (!isValid) {
+        logger?.error('❌ [facebookUploadVideo] Video file validation failed');
+        return {
+          success: false,
+          error: 'File video tidak valid. File mungkin corrupt atau bukan format video yang didukung.',
+        };
+      }
+      
+      // Get video metadata for proper Content-Type
+      const videoMetadata = getVideoMetadata(context.videoPath);
+      logger?.info('📊 [facebookUploadVideo] Video metadata:', videoMetadata);
+      
       logger?.info('📝 [facebookUploadVideo] Uploading video to Facebook Page...');
       logger?.info('🔑 [facebookUploadVideo] Using credentials:', {
         pageId,
@@ -88,9 +103,12 @@ export const facebookUploadVideo = createTool({
         tokenPrefix: pageAccessToken.substring(0, 20) + '...',
       });
       
-      // Create form data for video upload
+      // Create form data for video upload with explicit content type
       const formData = new FormData();
-      formData.append('source', fs.createReadStream(context.videoPath));
+      formData.append('source', fs.createReadStream(context.videoPath), {
+        filename: videoMetadata.filename,
+        contentType: videoMetadata.contentType,
+      });
       formData.append('title', context.title);
       formData.append('description', context.description);
       

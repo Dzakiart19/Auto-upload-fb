@@ -2,7 +2,7 @@ import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
 import * as fs from "fs";
 import FormData from "form-data";
-import { getFacebookCredentials } from "./facebookHelpers";
+import { getFacebookCredentials, getVideoMetadata, validateVideoFile } from "./facebookHelpers";
 
 export const facebookUploadVideoResumable = createTool({
   id: "facebook-upload-video-resumable",
@@ -74,6 +74,21 @@ export const facebookUploadVideoResumable = createTool({
         };
       }
       
+      // Validate video file signature
+      logger?.info('🔍 [facebookUploadVideoResumable] Validating video file...');
+      const isValid = validateVideoFile(context.videoPath, logger);
+      if (!isValid) {
+        logger?.error('❌ [facebookUploadVideoResumable] Video file validation failed');
+        return {
+          success: false,
+          error: 'File video tidak valid. File mungkin corrupt atau bukan format video yang didukung.',
+        };
+      }
+      
+      // Get video metadata for proper Content-Type
+      const videoMetadata = getVideoMetadata(context.videoPath);
+      logger?.info('📊 [facebookUploadVideoResumable] Video metadata:', videoMetadata);
+      
       // Step 1: Initialize upload session
       logger?.info('📝 [facebookUploadVideoResumable] Step 1: Initializing upload session...');
       
@@ -113,25 +128,6 @@ export const facebookUploadVideoResumable = createTool({
       
       // Step 2: Upload video file in chunks
       logger?.info('📤 [facebookUploadVideoResumable] Step 2: Uploading video file in chunks...');
-      
-      // Detect file extension and content type
-      const fileExtension = context.videoPath.split('.').pop()?.toLowerCase() || 'mp4';
-      const contentTypeMap: Record<string, string> = {
-        'mp4': 'video/mp4',
-        'mov': 'video/quicktime',
-        'avi': 'video/x-msvideo',
-        'wmv': 'video/x-ms-wmv',
-        'flv': 'video/x-flv',
-        'mkv': 'video/x-matroska',
-        'webm': 'video/webm',
-      };
-      const contentType = contentTypeMap[fileExtension] || 'video/mp4';
-      
-      logger?.info('📊 [facebookUploadVideoResumable] File metadata:', {
-        extension: fileExtension,
-        contentType: contentType,
-        fileSize: fileSize,
-      });
       
       // Upload in chunks following Facebook's offset pattern
       // Open file once for the entire upload
@@ -186,7 +182,7 @@ export const facebookUploadVideoResumable = createTool({
           fs.readSync(fd, buffer, 0, chunkSize, currentStartOffset);
           
           // Write chunk to temporary file (more reliable for form-data library)
-          const chunkFilePath = `${tmpChunkDir}/chunk_${Date.now()}_${chunkNumber}.${fileExtension}`;
+          const chunkFilePath = `${tmpChunkDir}/chunk_${Date.now()}_${chunkNumber}.${videoMetadata.extension}`;
           fs.writeFileSync(chunkFilePath, buffer);
           
           logger?.info(`💾 [facebookUploadVideoResumable] Chunk written to temp file:`, {
@@ -201,15 +197,15 @@ export const facebookUploadVideoResumable = createTool({
             form.append('start_offset', currentStartOffset.toString());
             form.append('upload_session_id', uploadSessionId);
             form.append('video_file_chunk', fs.createReadStream(chunkFilePath), {
-              filename: `chunk.${fileExtension}`,
-              contentType: contentType,
+              filename: `chunk.${videoMetadata.extension}`,
+              contentType: videoMetadata.contentType,
             });
             
             const uploadUrl = `https://graph-video.facebook.com/v19.0/${pageId}/videos?access_token=${encodeURIComponent(pageAccessToken)}`;
             
             logger?.info(`🔼 [facebookUploadVideoResumable] Sending chunk ${chunkNumber} to Facebook...`, {
               url: uploadUrl.split('?')[0],
-              contentType: contentType,
+              contentType: videoMetadata.contentType,
               chunkSize: chunkSize,
             });
             
