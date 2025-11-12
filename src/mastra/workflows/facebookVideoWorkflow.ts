@@ -106,9 +106,15 @@ const detectCategory = (title: string | undefined | null, logger?: any): "meme" 
 const processMediaDirectly = async (inputData: any, mastra: any) => {
   const logger = mastra?.getLogger();
   const mediaType = inputData.mediaType || 'video'; // Default to 'video' for backwards compatibility
+  const isUrlFlow = inputData.isUrlFlow || false;
   
   logger?.info("⚠️ [AI Mode] FALLBACK - Running without AI, using direct tool calls");
-  logger?.info(`📝 [processMediaDirectly] Starting direct ${mediaType} processing...`, { mediaType });
+  logger?.info(`📝 [processMediaDirectly] Starting direct ${mediaType} processing...`, { 
+    mediaType,
+    isUrlFlow,
+    hasFileId: !!inputData.fileId,
+    hasLocalFilePath: !!inputData.localFilePath,
+  });
   
   let mediaUrl = '';
   let mediaId = '';
@@ -166,19 +172,27 @@ const processMediaDirectly = async (inputData: any, mastra: any) => {
       captionLength: optimizedCaption.length,
     });
     
-    // Step 1: Get media file (either from Telegram or from local URL download)
-    if (inputData.localFilePath) {
-      // URL flow: Use already-downloaded file
-      logger?.info("📂 [Step 1] Using pre-downloaded file from URL...", {
-        filePath: inputData.localFilePath,
-      });
+    // Step 1: Get media file (branch by flow type)
+    if (isUrlFlow) {
+      // URL flow: Use already-downloaded file from prepareMediaData
+      logger?.info("📂 [Step 1] URL flow - using pre-downloaded file...");
+      
+      if (!inputData.localFilePath) {
+        throw new Error('URL flow requires localFilePath but it is missing');
+      }
+      
       downloadSuccess = true;
       originalMediaPath = inputData.localFilePath;
-      logger?.info("✅ [Step 1] Using local file:", originalMediaPath);
+      logger?.info("✅ [Step 1] Using local file from URL download:", originalMediaPath);
       
     } else if (mediaType === 'photo') {
       // Manual upload flow: Download photo from Telegram
-      logger?.info("📥 [Step 1] Downloading photo from Telegram...");
+      logger?.info("📥 [Step 1] Manual flow - downloading photo from Telegram...");
+      
+      if (!inputData.fileId) {
+        throw new Error('Manual upload requires fileId but it is missing');
+      }
+      
       const downloadResult = await telegramDownloadPhoto.execute({
         context: {
           fileId: inputData.fileId,
@@ -198,7 +212,12 @@ const processMediaDirectly = async (inputData: any, mastra: any) => {
       
     } else {
       // Manual upload flow: Download video from Telegram
-      logger?.info("📥 [Step 1/5] Downloading video from Telegram...");
+      logger?.info("📥 [Step 1/5] Manual flow - downloading video from Telegram...");
+      
+      if (!inputData.fileId) {
+        throw new Error('Manual upload requires fileId but it is missing');
+      }
+      
       const downloadResult = await telegramDownloadVideo.execute({
         context: {
           fileId: inputData.fileId,
@@ -457,6 +476,7 @@ const processMediaUpload = createStep({
     description: z.string().optional().describe("Deskripsi/caption media dengan hashtags - optional for URL flow"),
     userName: z.string().optional().describe("Username pengirim"),
     localFilePath: z.string().optional().describe("Local file path from URL download - for URL flow"),
+    isUrlFlow: z.boolean().optional().describe("Flag to indicate URL flow vs manual flow"),
   }),
   
   outputSchema: z.object({
@@ -774,16 +794,37 @@ const prepareMediaData = createStep({
     } else {
       logger?.info('📤 [prepareMediaData] Manual upload flow detected, passing through...');
       
-      // Manual upload flow: pass through as-is
+      // Validate manual upload has required fields
+      if (!inputData.fileId) {
+        logger?.error('❌ [prepareMediaData] Manual upload missing fileId');
+        await telegramSendMessage.execute({
+          context: {
+            chatId: inputData.chatId,
+            message: '❌ *Error: Data tidak lengkap*\n\nFile ID tidak ditemukan. Mohon kirim ulang media.',
+          },
+          mastra,
+          runtimeContext: {} as any
+        }).catch(err => logger?.error('Failed to send error message:', err));
+        
+        throw new Error('Manual upload requires fileId');
+      }
+      
+      logger?.info('✅ [prepareMediaData] Manual upload validated', {
+        hasFileId: !!inputData.fileId,
+        hasTitle: !!inputData.title,
+        hasDescription: !!inputData.description,
+      });
+      
+      // Manual upload flow: pass through as-is with explicit flag
       return {
         threadId: inputData.threadId,
         chatId: inputData.chatId,
         fileId: inputData.fileId,
         mediaType: inputData.mediaType || 'video' as const,
-        title: inputData.title,
-        description: inputData.description,
+        title: inputData.title || 'Media upload',
+        description: inputData.description || '',
         userName: inputData.userName,
-        isUrlFlow: false,
+        isUrlFlow: false, // Explicit flag for manual flow
       };
     }
   },

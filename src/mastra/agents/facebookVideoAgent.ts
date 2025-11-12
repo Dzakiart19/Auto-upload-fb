@@ -38,7 +38,8 @@ export const facebookVideoAgent = new Agent({
     4. Kirim konfirmasi ke pengguna di Telegram dengan hasil operasi
     
     PETUNJUK PENTING:
-    - Gunakan caption/deskripsi yang diberikan user LANGSUNG, jangan diubah atau ditambah kata-kata
+    - Gunakan caption/deskripsi yang diberikan user LANGSUNG TANPA MODIFIKASI
+    - JANGAN gunakan generate-engaging-caption - caption user sudah bagus apa adanya
     - Generate hashtag saja untuk meningkatkan reach
     - UNTUK VIDEO: WAJIB gunakan ffmpeg-convert-video sebelum upload untuk menghindari error "file corrupt"
     - UNTUK FOTO: JANGAN gunakan ffmpeg-convert-video, langsung upload dengan facebook-upload-photo
@@ -62,13 +63,14 @@ export const facebookVideoAgent = new Agent({
     PENTING: 
     - FFmpeg (ffmpeg-convert-video) HANYA untuk video, JANGAN gunakan untuk foto!
     - Sharing ke grup (facebook-share-to-groups) saat ini hanya tersedia untuk video.
-    - Pakai caption/deskripsi LANGSUNG dari user, JANGAN tambah kata-kata lain!
+    - Pakai caption/deskripsi LANGSUNG dari user TANPA MODIFIKASI!
+    - TIDAK BOLEH pakai tool generate-engaging-caption!
   `,
   
   model: openai.responses("gpt-4o"),
   
   tools: {
-    // Hashtag generation only (caption uses user input directly)
+    // Hashtag generation only (caption uses user input directly, NO generate-engaging-caption)
     generateTrendingHashtags,
     // Video tools
     telegramDownloadVideo,
