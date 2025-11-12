@@ -2,6 +2,7 @@ import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
 import * as fs from "fs";
 import FormData from "form-data";
+import axios from "axios";
 import { getFacebookCredentials, getVideoMetadata, validateVideoFile } from "./facebookHelpers";
 
 export const facebookUploadVideoResumable = createTool({
@@ -229,21 +230,24 @@ export const facebookUploadVideoResumable = createTool({
                   await new Promise(resolve => setTimeout(resolve, delayMs));
                 }
                 
-                const uploadResponse = await fetch(uploadUrl, {
-                  method: 'POST',
-                  body: form as any,
+                // Use axios instead of fetch for proper multipart/form-data handling
+                // axios automatically includes Content-Type with boundary from form.getHeaders()
+                const uploadResponse = await axios.post(uploadUrl, form, {
                   headers: form.getHeaders(),
+                  maxContentLength: Infinity,
+                  maxBodyLength: Infinity,
+                  validateStatus: () => true, // Don't throw on any status code
                 });
                 
-                const uploadResult = await uploadResponse.json();
+                const uploadResult = uploadResponse.data;
                 
                 logger?.info(`📩 [facebookUploadVideoResumable] Facebook response for chunk ${chunkNumber} (attempt ${retryAttempt}):`, {
                   status: uploadResponse.status,
-                  ok: uploadResponse.ok,
+                  ok: uploadResponse.status >= 200 && uploadResponse.status < 300,
                   result: uploadResult,
                 });
                 
-                if (!uploadResponse.ok || uploadResult.error) {
+                if (uploadResponse.status < 200 || uploadResponse.status >= 300 || uploadResult.error) {
                   // Check if error is transient (1363030 = timeout)
                   const isTransient = uploadResult.error?.error_subcode === 1363030 || uploadResult.error?.is_transient === true;
                   
