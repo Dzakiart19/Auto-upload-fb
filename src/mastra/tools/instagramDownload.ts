@@ -38,7 +38,7 @@ export const instagramDownload = createTool({
       
       const result = await ig.fetchPost(context.url);
       
-      if (!result || !result.url_list || result.url_list.length === 0) {
+      if (!result || !result.links || result.links.length === 0) {
         logger?.error('❌ [instagramDownload] No data returned from Instagram');
         return {
           success: false,
@@ -47,7 +47,7 @@ export const instagramDownload = createTool({
       }
       
       logger?.info('✅ [instagramDownload] Metadata fetched:', {
-        hasUrl: !!result.url_list[0],
+        hasUrl: !!result.links[0],
         caption: result.caption?.substring(0, 100),
       });
       
@@ -66,8 +66,8 @@ export const instagramDownload = createTool({
         author,
       });
       
-      // Step 2: Download video (use first URL from url_list)
-      const videoUrl = result.url_list[0];
+      // Step 2: Download video (use first URL from links array)
+      const videoUrl = typeof result.links[0] === 'string' ? result.links[0] : result.links[0].url;
       
       if (!videoUrl) {
         logger?.error('❌ [instagramDownload] No video URL found in response');

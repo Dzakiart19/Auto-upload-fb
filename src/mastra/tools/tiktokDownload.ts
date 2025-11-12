@@ -32,8 +32,9 @@ export const tiktokDownload = createTool({
       // Step 1: Get TikTok video metadata and download URL
       logger?.info('📝 [tiktokDownload] Fetching TikTok metadata...');
       
+      // Use v1 instead of v3 for better reliability (v3 often returns 404)
       const result = await Downloader(context.url, {
-        version: "v3" // Use v3 for best compatibility
+        version: "v1" // Use v1 for better reliability, v3 often fails with 404
       });
       
       if (result.status !== "success" || !result.result) {
@@ -65,8 +66,9 @@ export const tiktokDownload = createTool({
         author,
       });
       
-      // Step 2: Download video (v3 returns videoHD or videoSD)
-      const videoUrl = videoData.videoHD || videoData.videoSD;
+      // Step 2: Download video (v1 returns download array or direct URL)
+      // v1 structure: result.result.download could be direct URL or need different access
+      const videoUrl = videoData.download || videoData.video || videoData.videoHD || videoData.videoSD;
       
       if (!videoUrl) {
         logger?.error('❌ [tiktokDownload] No video URL found in response');
