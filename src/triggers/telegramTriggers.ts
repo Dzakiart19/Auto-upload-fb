@@ -32,6 +32,20 @@ const userStates = new Map<string | number, {
   title?: string;
 }>();
 
+// Idempotency check: Track files yang sedang diproses untuk mencegah duplicate upload
+const processingFiles = new Map<string, number>();
+const PROCESSING_TIMEOUT = 5 * 60 * 1000; // 5 menit
+
+// Cleanup old entries setiap 10 menit
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, timestamp] of processingFiles.entries()) {
+    if (now - timestamp > PROCESSING_TIMEOUT) {
+      processingFiles.delete(key);
+    }
+  }
+}, 10 * 60 * 1000);
+
 async function sendTelegramMessage(chatId: string | number, text: string) {
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
   if (!token) return;
@@ -162,47 +176,82 @@ export function registerTelegramTrigger({
               const mediaType = currentState.mediaType || 'video'; // Default to video for backwards compatibility
               const mediaLabel = mediaType === 'photo' ? 'foto' : 'video';
               
-              // Processing message based on media type
-              let processingMessage = '';
-              if (mediaType === 'photo') {
-                processingMessage = 
-                  '⏳ Sedang memproses foto...\n\n' +
-                  '• Download foto dari Telegram\n' +
-                  '• Upload ke Facebook Page\n\n' +
-                  'Mohon tunggu sebentar...';
-              } else {
-                processingMessage = 
-                  '⏳ Sedang memproses video...\n\n' +
-                  '• Download video dari Telegram\n' +
-                  '• Konversi video\n' +
-                  '• Upload ke Facebook Page\n' +
-                  '• Share ke grup-grup Facebook\n\n' +
-                  'Mohon tunggu sebentar...';
+              // Idempotency check: Cegah duplicate processing untuk file yang sama
+              const fileKey = `${chatId}-${currentState.mediaFileId}`;
+              const now = Date.now();
+              
+              if (processingFiles.has(fileKey)) {
+                const processingTime = processingFiles.get(fileKey)!;
+                const elapsedTime = now - processingTime;
+                
+                if (elapsedTime < PROCESSING_TIMEOUT) {
+                  logger?.warn(`⚠️ [Telegram] Duplicate request detected dan diabaikan`, {
+                    fileKey,
+                    chatId,
+                    mediaType,
+                    elapsedTime: Math.floor(elapsedTime / 1000) + 's',
+                  });
+                  
+                  await sendTelegramMessage(
+                    chatId,
+                    `⚠️ ${mediaLabel.charAt(0).toUpperCase() + mediaLabel.slice(1)} ini sedang diproses.\n\nMohon tunggu beberapa saat...`
+                  );
+                  
+                  return c.text("OK", 200);
+                }
               }
               
-              await sendTelegramMessage(chatId, processingMessage);
+              // Mark file sebagai sedang diproses
+              processingFiles.set(fileKey, now);
+              logger?.info(`🔒 [Telegram] Marking file as processing`, { fileKey, chatId, mediaType });
+              
+              try {
+                // Processing message based on media type
+                let processingMessage = '';
+                if (mediaType === 'photo') {
+                  processingMessage = 
+                    '⏳ Sedang memproses foto...\n\n' +
+                    '• Download foto dari Telegram\n' +
+                    '• Upload ke Facebook Page\n\n' +
+                    'Mohon tunggu sebentar...';
+                } else {
+                  processingMessage = 
+                    '⏳ Sedang memproses video...\n\n' +
+                    '• Download video dari Telegram\n' +
+                    '• Konversi video\n' +
+                    '• Upload ke Facebook Page\n' +
+                    '• Share ke grup-grup Facebook\n\n' +
+                    'Mohon tunggu sebentar...';
+                }
+                
+                await sendTelegramMessage(chatId, processingMessage);
 
-              // Trigger workflow with mediaType
-              const triggerType = mediaType === 'photo' ? 'telegram/photo' : 'telegram/video';
-              await handler(mastra, {
-                type: triggerType,
-                params: {
-                  userName,
-                  chatId,
-                  fileId: currentState.mediaFileId!,
-                  fileName: currentState.mediaFileName,
-                  mediaType: mediaType,
-                },
-                payload: {
-                  chatId,
-                  fileId: currentState.mediaFileId,
-                  fileName: currentState.mediaFileName,
-                  mediaType: mediaType,
-                  title: currentState.title,
-                  description,
-                  userName,
-                },
-              } as TriggerInfoTelegramOnNewMessage);
+                // Trigger workflow with mediaType
+                const triggerType = mediaType === 'photo' ? 'telegram/photo' : 'telegram/video';
+                await handler(mastra, {
+                  type: triggerType,
+                  params: {
+                    userName,
+                    chatId,
+                    fileId: currentState.mediaFileId!,
+                    fileName: currentState.mediaFileName,
+                    mediaType: mediaType,
+                  },
+                  payload: {
+                    chatId,
+                    fileId: currentState.mediaFileId,
+                    fileName: currentState.mediaFileName,
+                    mediaType: mediaType,
+                    title: currentState.title,
+                    description,
+                    userName,
+                  },
+                } as TriggerInfoTelegramOnNewMessage);
+              } finally {
+                // Always clear processing lock after workflow completes or fails
+                processingFiles.delete(fileKey);
+                logger?.info(`🔓 [Telegram] Cleared processing lock`, { fileKey, chatId, mediaType });
+              }
 
               // Reset state
               userStates.set(chatId, { step: 'awaiting_media' });

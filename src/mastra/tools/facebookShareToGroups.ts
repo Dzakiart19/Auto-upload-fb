@@ -53,6 +53,12 @@ export const facebookShareToGroups = createTool({
       // Read group IDs from groups.txt
       const groupsFilePath = path.join(process.cwd(), 'groups.txt');
       
+      logger?.info('🔍 [facebookShareToGroups] Checking groups.txt file...', {
+        path: groupsFilePath,
+        cwd: process.cwd(),
+        exists: fs.existsSync(groupsFilePath),
+      });
+      
       if (!fs.existsSync(groupsFilePath)) {
         logger?.warn('⚠️ [facebookShareToGroups] groups.txt not found, creating empty file');
         fs.writeFileSync(groupsFilePath, '# Tambahkan Facebook Group IDs di sini, satu per baris\n');
@@ -66,13 +72,27 @@ export const facebookShareToGroups = createTool({
       }
       
       const groupsContent = fs.readFileSync(groupsFilePath, 'utf-8');
+      logger?.info('📄 [facebookShareToGroups] File content loaded', {
+        contentLength: groupsContent.length,
+        lines: groupsContent.split('\n').length,
+      });
+      
       const groupIds = groupsContent
         .split('\n')
         .map(line => line.trim())
         .filter(line => line && !line.startsWith('#')); // Accept both numeric and text IDs
       
+      logger?.info('📝 [facebookShareToGroups] Parsed group IDs', {
+        count: groupIds.length,
+        firstFew: groupIds.slice(0, 3),
+        allIds: groupIds,
+      });
+      
       if (groupIds.length === 0) {
         logger?.warn('⚠️ [facebookShareToGroups] No group IDs found in groups.txt');
+        logger?.warn('⚠️ [facebookShareToGroups] Raw content preview:', {
+          preview: groupsContent.substring(0, 200),
+        });
         return {
           success: true,
           totalGroups: 0,
@@ -82,7 +102,7 @@ export const facebookShareToGroups = createTool({
         };
       }
       
-      logger?.info('📝 [facebookShareToGroups] Found groups to share:', { count: groupIds.length });
+      logger?.info('✅ [facebookShareToGroups] Found groups to share:', { count: groupIds.length });
       
       const shareMessage = context.message || `🔥 Video baru! Tonton sekarang: ${context.videoUrl}`;
       
