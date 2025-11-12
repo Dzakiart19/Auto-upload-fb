@@ -128,49 +128,73 @@ const processMediaDirectly = async (inputData: any, mastra: any) => {
   let optimizedHashtags = '';
   
   try {
-    // Step 0: Use simple user input + generate hashtags only (no fancy captions)
-    logger?.info("✨ [Step 0] Preparing caption from user input and generating hashtags...");
+    // Step 0: Prepare caption based on flow type
+    logger?.info("✨ [Step 0] Preparing caption...", {
+      isUrlFlow,
+      hasTitle: !!inputData.title,
+      hasDescription: !!inputData.description,
+    });
     
     // Validate and provide defaults for required inputs
     const safeTitle = inputData.title || 'Media upload';
     const safeDescription = inputData.description || '';
-    const category = detectCategory(safeTitle, logger);
     
-    // Use user input directly as caption (simple, no "alay" stuff)
-    optimizedCaption = safeDescription ? `${safeTitle}\n\n${safeDescription}` : safeTitle;
-    
-    // Generate hashtags only (keep hashtags for discoverability)
-    try {
-      const hashtagResult = await generateTrendingHashtags.execute({
-        context: {
-          title: safeTitle,
-          category: category,
-          language: "both",
-          maxHashtags: 15,
-        },
-        mastra,
-        runtimeContext: {} as any
+    if (isUrlFlow) {
+      // URL flow: Use metadata from TikTok/Instagram directly (already contains caption + hashtags from source)
+      logger?.info("🔗 [Step 0] URL flow - using metadata from source (TikTok/Instagram) directly");
+      
+      // Description from prepareMediaData already contains: caption + original description + hashtags
+      // Use it as-is without any modifications or additional hashtag generation
+      optimizedCaption = safeDescription ? `${safeTitle}\n\n${safeDescription}` : safeTitle;
+      optimizedHashtags = ''; // Hashtags already included in description from source
+      
+      logger?.info("✅ [Step 0] Using source metadata directly", {
+        captionLength: optimizedCaption.length,
+        source: "TikTok/Instagram",
       });
       
-      optimizedHashtags = hashtagResult.hashtags;
+    } else {
+      // Manual upload flow: Use user input + generate trending hashtags
+      logger?.info("📤 [Step 0] Manual upload flow - using user input + generating hashtags");
       
-      logger?.info("✅ [Step 0] Hashtags generated successfully", {
-        category,
-        hashtagCount: hashtagResult.count,
+      const category = detectCategory(safeTitle, logger);
+      
+      // Use user input directly as caption (simple, no "alay" stuff)
+      optimizedCaption = safeDescription ? `${safeTitle}\n\n${safeDescription}` : safeTitle;
+      
+      // Generate hashtags only (keep hashtags for discoverability)
+      try {
+        const hashtagResult = await generateTrendingHashtags.execute({
+          context: {
+            title: safeTitle,
+            category: category,
+            language: "both",
+            maxHashtags: 15,
+          },
+          mastra,
+          runtimeContext: {} as any
+        });
+        
+        optimizedHashtags = hashtagResult.hashtags;
+        
+        logger?.info("✅ [Step 0] Hashtags generated successfully", {
+          category,
+          hashtagCount: hashtagResult.count,
+        });
+        
+      } catch (hashtagError: any) {
+        // Fallback: use user description as hashtags if generation fails
+        logger?.warn("⚠️ [Step 0] Hashtag generation failed, using user description", {
+          error: hashtagError.message,
+        });
+        
+        optimizedHashtags = safeDescription;
+      }
+      
+      logger?.info("✅ [Step 0] Caption ready (simple user input)", {
+        captionLength: optimizedCaption.length,
       });
-      
-    } catch (hashtagError: any) {
-      // Fallback: use user description as hashtags if generation fails
-      logger?.warn("⚠️ [Step 0] Hashtag generation failed, using user description", {
-        error: hashtagError.message,
-      });
-      
-      optimizedHashtags = safeDescription;
     }
-    
-    logger?.info("✅ [Step 0] Caption ready (simple user input)", {
-      captionLength: optimizedCaption.length,
-    });
     
     // Step 1: Get media file (branch by flow type)
     if (isUrlFlow) {
@@ -504,14 +528,21 @@ const processMediaUpload = createStep({
     // Check AI availability
     const hasOpenAIKey = !!process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim() !== '';
     const useAI = hasOpenAIKey && process.env.AI_FALLBACK_ENABLED !== 'true';
+    const isUrlFlow = inputData.isUrlFlow || false;
     
     logger?.info(`[AI] Mode: ${useAI ? 'AI ACTIVE' : 'FALLBACK (Direct Tools)'}`);
     logger?.info(`[AI] OpenAI Key: ${hasOpenAIKey ? 'Present' : 'Missing'}`);
     logger?.info(`[AI] Fallback Enabled: ${process.env.AI_FALLBACK_ENABLED || 'default (false)'}`);
+    logger?.info(`[AI] Is URL Flow: ${isUrlFlow}`);
     
-    // If no AI, use direct tool execution
-    if (!useAI || !hasOpenAIKey) {
-      logger?.info("⚠️ AI sedang offline atau dinonaktifkan, menggunakan mode fallback");
+    // IMPORTANT: URL flow MUST use direct tools to preserve source metadata (TikTok/Instagram)
+    // AI mode would regenerate captions/hashtags which violates user requirement
+    if (!useAI || !hasOpenAIKey || isUrlFlow) {
+      if (isUrlFlow) {
+        logger?.info("🔗 URL flow detected - bypassing AI to preserve source metadata (TikTok/Instagram)");
+      } else {
+        logger?.info("⚠️ AI sedang offline atau dinonaktifkan, menggunakan mode fallback");
+      }
       return await processMediaDirectly(inputData, mastra);
     }
     
@@ -666,8 +697,8 @@ const prepareMediaData = createStep({
       logger?.info('🔗 [prepareMediaData] URL flow detected, downloading from URL...');
       
       try {
-        // Detect platform from URL
-        const tiktokRegex = /tiktok\.com|vm\.tiktok\.com/i;
+        // Detect platform from URL (include vt.tiktok.com for short URLs)
+        const tiktokRegex = /tiktok\.com|vm\.tiktok\.com|vt\.tiktok\.com/i;
         const instagramRegex = /instagram\.com\/(?:p|reel)/i;
         
         const isTikTok = tiktokRegex.test(inputData.url);
