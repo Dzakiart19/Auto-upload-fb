@@ -10,7 +10,7 @@ if (!process.env.TELEGRAM_BOT_TOKEN) {
 }
 
 export type TriggerInfoTelegramOnNewMessage = {
-  type: "telegram/message" | "telegram/video";
+  type: "telegram/message" | "telegram/video" | "telegram/photo";
   params: {
     userName: string;
     message?: string;
@@ -18,15 +18,17 @@ export type TriggerInfoTelegramOnNewMessage = {
     fileId?: string;
     fileName?: string;
     fileSize?: number;
+    mediaType?: 'video' | 'photo';
   };
   payload: any;
 };
 
 // State management untuk conversation flow
 const userStates = new Map<string | number, {
-  step: 'awaiting_video' | 'awaiting_title' | 'awaiting_description';
-  videoFileId?: string;
-  videoFileName?: string;
+  step: 'awaiting_media' | 'awaiting_title' | 'awaiting_description';
+  mediaType?: 'video' | 'photo';
+  mediaFileId?: string;
+  mediaFileName?: string;
   title?: string;
 }>();
 
@@ -75,14 +77,15 @@ export function registerTelegramTrigger({
           const userName = message.from?.username || message.from?.first_name || 'User';
           const text = message.text;
           const video = message.video;
+          const photo = message.photo; // Array of PhotoSize, largest is at the end
 
           // Handle /start command
           if (text === '/start') {
-            userStates.set(chatId, { step: 'awaiting_video' });
+            userStates.set(chatId, { step: 'awaiting_media' });
             await sendTelegramMessage(
               chatId,
-              '🎬 Selamat datang di Bot Upload Video ke Facebook!\n\n' +
-              'Kirim video yang ingin kamu upload ke Facebook Page!'
+              '🎬📸 Selamat datang di Bot Upload Media ke Facebook!\n\n' +
+              'Kirim <b>video</b> atau <b>foto</b> yang ingin kamu upload ke Facebook Page!'
             );
             return c.text("OK", 200);
           }
@@ -99,13 +102,41 @@ export function registerTelegramTrigger({
 
             userStates.set(chatId, {
               step: 'awaiting_title',
-              videoFileId: video.file_id,
-              videoFileName: video.file_name || `video_${Date.now()}.mp4`,
+              mediaType: 'video',
+              mediaFileId: video.file_id,
+              mediaFileName: video.file_name || `video_${Date.now()}.mp4`,
             });
 
             await sendTelegramMessage(
               chatId,
               '✅ Video diterima!\n\n📝 Sekarang, kirim <b>judul</b> untuk video ini:'
+            );
+            return c.text("OK", 200);
+          }
+
+          // Handle photo upload
+          if (photo && Array.isArray(photo) && photo.length > 0) {
+            // Get the largest photo (last element in the array)
+            const largestPhoto = photo[photo.length - 1];
+            
+            logger?.info("📸 [Telegram] Photo received", {
+              fileId: largestPhoto.file_id,
+              fileSize: largestPhoto.file_size,
+              width: largestPhoto.width,
+              height: largestPhoto.height,
+              totalSizes: photo.length,
+            });
+
+            userStates.set(chatId, {
+              step: 'awaiting_title',
+              mediaType: 'photo',
+              mediaFileId: largestPhoto.file_id,
+              mediaFileName: `photo_${Date.now()}.jpg`,
+            });
+
+            await sendTelegramMessage(
+              chatId,
+              '✅ Foto diterima!\n\n📝 Sekarang, kirim <b>caption</b> untuk foto ini:'
             );
             return c.text("OK", 200);
           }
@@ -119,37 +150,54 @@ export function registerTelegramTrigger({
                 title: text,
               });
 
+              const mediaLabel = currentState.mediaType === 'photo' ? 'foto' : 'video';
               await sendTelegramMessage(
                 chatId,
-                '✅ Judul tersimpan!\n\n🏷️ Sekarang, kirim <b>deskripsi/hashtags</b> untuk video ini:'
+                `✅ ${currentState.mediaType === 'photo' ? 'Caption' : 'Judul'} tersimpan!\n\n🏷️ Sekarang, kirim <b>deskripsi/hashtags</b> untuk ${mediaLabel} ini:`
               );
               return c.text("OK", 200);
 
             } else if (currentState.step === 'awaiting_description') {
               const description = text;
+              const mediaType = currentState.mediaType || 'video'; // Default to video for backwards compatibility
+              const mediaLabel = mediaType === 'photo' ? 'foto' : 'video';
               
-              await sendTelegramMessage(
-                chatId,
-                '⏳ Sedang memproses video...\n\n' +
-                '• Download video dari Telegram\n' +
-                '• Upload ke Facebook Page\n' +
-                '• Share ke grup-grup Facebook\n\n' +
-                'Mohon tunggu sebentar...'
-              );
+              // Processing message based on media type
+              let processingMessage = '';
+              if (mediaType === 'photo') {
+                processingMessage = 
+                  '⏳ Sedang memproses foto...\n\n' +
+                  '• Download foto dari Telegram\n' +
+                  '• Upload ke Facebook Page\n\n' +
+                  'Mohon tunggu sebentar...';
+              } else {
+                processingMessage = 
+                  '⏳ Sedang memproses video...\n\n' +
+                  '• Download video dari Telegram\n' +
+                  '• Konversi video\n' +
+                  '• Upload ke Facebook Page\n' +
+                  '• Share ke grup-grup Facebook\n\n' +
+                  'Mohon tunggu sebentar...';
+              }
+              
+              await sendTelegramMessage(chatId, processingMessage);
 
-              // Trigger workflow
+              // Trigger workflow with mediaType
+              const triggerType = mediaType === 'photo' ? 'telegram/photo' : 'telegram/video';
               await handler(mastra, {
-                type: "telegram/video",
+                type: triggerType,
                 params: {
                   userName,
                   chatId,
-                  fileId: currentState.videoFileId!,
-                  fileName: currentState.videoFileName,
+                  fileId: currentState.mediaFileId!,
+                  fileName: currentState.mediaFileName,
+                  mediaType: mediaType,
                 },
                 payload: {
                   chatId,
-                  fileId: currentState.videoFileId,
-                  fileName: currentState.videoFileName,
+                  fileId: currentState.mediaFileId,
+                  fileName: currentState.mediaFileName,
+                  mediaType: mediaType,
                   title: currentState.title,
                   description,
                   userName,
@@ -157,17 +205,17 @@ export function registerTelegramTrigger({
               } as TriggerInfoTelegramOnNewMessage);
 
               // Reset state
-              userStates.set(chatId, { step: 'awaiting_video' });
+              userStates.set(chatId, { step: 'awaiting_media' });
 
               return c.text("OK", 200);
             }
           }
 
           // Default message untuk user yang belum /start atau di step yang salah
-          if (!currentState || currentState.step === 'awaiting_video') {
+          if (!currentState || currentState.step === 'awaiting_media') {
             await sendTelegramMessage(
               chatId,
-              '🎬 Kirim video yang ingin kamu upload ke Facebook Page!\n\n' +
+              '🎬📸 Kirim <b>video</b> atau <b>foto</b> yang ingin kamu upload ke Facebook Page!\n\n' +
               'Atau ketik /start untuk memulai ulang.'
             );
           }

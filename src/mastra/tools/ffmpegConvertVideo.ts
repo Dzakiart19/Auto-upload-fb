@@ -58,14 +58,22 @@ export const ffmpegConvertVideo = createTool({
       logger?.info('📝 [ffmpegConvertVideo] Converting video to Facebook-compatible format...');
       logger?.info('🎬 [ffmpegConvertVideo] Output path:', outputPath);
       
-      // FFmpeg command to convert video
+      // FFmpeg command to convert video with Facebook-optimized parameters
       // -i: input file
       // -c:v libx264: use H.264 video codec (widely compatible)
-      // -preset fast: encoding speed/compression trade-off
+      // -profile:v high -level 4.0: H.264 profile for best compatibility
+      // -pix_fmt yuv420p: pixel format for maximum compatibility
+      // -preset medium: balance between encoding speed and quality
+      // -crf 23: constant rate factor for good quality (lower = better quality)
+      // -vf scale=-2:1080: scale to max 1080p height, maintain aspect ratio (width divisible by 2)
+      // -r 30: frame rate 30 fps
+      // -maxrate 4M -bufsize 8M: bitrate control for Facebook limits
       // -c:a aac: use AAC audio codec (widely compatible)
-      // -strict experimental: allow experimental AAC encoder
+      // -b:a 128k: audio bitrate 128 kbps
+      // -ar 44100: audio sample rate 44.1 kHz
+      // -movflags +faststart: enable progressive upload/playback
       // -y: overwrite output file if exists
-      const ffmpegCommand = `ffmpeg -i "${context.videoPath}" -c:v libx264 -preset fast -c:a aac -strict experimental -y "${outputPath}"`;
+      const ffmpegCommand = `ffmpeg -i "${context.videoPath}" -c:v libx264 -profile:v high -level 4.0 -pix_fmt yuv420p -preset medium -crf 23 -vf scale=-2:1080 -r 30 -maxrate 4M -bufsize 8M -c:a aac -b:a 128k -ar 44100 -movflags +faststart -y "${outputPath}"`;
       
       logger?.info('🎥 [ffmpegConvertVideo] Executing FFmpeg command...');
       logger?.debug('📝 [ffmpegConvertVideo] Command:', ffmpegCommand);

@@ -2,8 +2,10 @@ import { createStep, createWorkflow } from "../inngest";
 import { z } from "zod";
 import { facebookVideoAgent } from "../agents/facebookVideoAgent";
 import { telegramDownloadVideo } from "../tools/telegramDownloadVideo";
+import { telegramDownloadPhoto } from "../tools/telegramDownloadPhoto";
 import { ffmpegConvertVideo } from "../tools/ffmpegConvertVideo";
 import { facebookUploadVideoSmart } from "../tools/facebookUploadVideoSmart";
+import { facebookUploadPhoto } from "../tools/facebookUploadPhoto";
 import { facebookShareToGroups } from "../tools/facebookShareToGroups";
 import { telegramSendMessage } from "../tools/telegramSendMessage";
 import * as fs from "fs";
@@ -16,15 +18,16 @@ const shouldUseAI = () => {
 };
 
 // Fallback: Direct tool execution without AI
-const processVideoDirectly = async (inputData: any, mastra: any) => {
+const processMediaDirectly = async (inputData: any, mastra: any) => {
   const logger = mastra?.getLogger();
+  const mediaType = inputData.mediaType || 'video'; // Default to 'video' for backwards compatibility
   
   logger?.info("⚠️ [AI Mode] FALLBACK - Running without AI, using direct tool calls");
-  logger?.info("📝 [processVideoDirectly] Starting direct video processing...");
+  logger?.info(`📝 [processMediaDirectly] Starting direct ${mediaType} processing...`, { mediaType });
   
-  let videoUrl = '';
-  let videoId = '';
-  let originalVideoPath = '';
+  let mediaUrl = '';
+  let mediaId = '';
+  let originalMediaPath = '';
   let convertedVideoPath = '';
   let downloadSuccess = false;
   let convertSuccess = false;
@@ -32,94 +35,165 @@ const processVideoDirectly = async (inputData: any, mastra: any) => {
   let shareResults = { totalGroups: 0, successCount: 0, failCount: 0 };
   
   try {
-    // Step 1: Download video from Telegram
-    logger?.info("📥 [Step 1/5] Downloading video from Telegram...");
-    const downloadResult = await telegramDownloadVideo.execute({
-      context: {
-        fileId: inputData.fileId,
-        fileName: `video_${Date.now()}` // Let the tool add the correct extension
-      },
-      mastra,
-      runtimeContext: {} as any
-    });
-    
-    if (!downloadResult.success || !downloadResult.filePath) {
-      throw new Error(`Download gagal: ${downloadResult.error || 'Unknown error'}`);
+    // Step 1: Download media from Telegram (branch by media type)
+    if (mediaType === 'photo') {
+      logger?.info("📥 [Step 1] Downloading photo from Telegram...");
+      const downloadResult = await telegramDownloadPhoto.execute({
+        context: {
+          fileId: inputData.fileId,
+          fileName: `photo_${Date.now()}` // Let the tool add the correct extension
+        },
+        mastra,
+        runtimeContext: {} as any
+      });
+      
+      if (!downloadResult.success || !downloadResult.filePath) {
+        throw new Error(`Download foto gagal: ${downloadResult.error || 'Unknown error'}`);
+      }
+      
+      downloadSuccess = true;
+      originalMediaPath = downloadResult.filePath;
+      logger?.info("✅ [Step 1] Photo downloaded successfully:", originalMediaPath);
+      
+    } else {
+      // Video download (existing flow)
+      logger?.info("📥 [Step 1/5] Downloading video from Telegram...");
+      const downloadResult = await telegramDownloadVideo.execute({
+        context: {
+          fileId: inputData.fileId,
+          fileName: `video_${Date.now()}` // Let the tool add the correct extension
+        },
+        mastra,
+        runtimeContext: {} as any
+      });
+      
+      if (!downloadResult.success || !downloadResult.filePath) {
+        throw new Error(`Download video gagal: ${downloadResult.error || 'Unknown error'}`);
+      }
+      
+      downloadSuccess = true;
+      originalMediaPath = downloadResult.filePath;
+      logger?.info("✅ [Step 1/5] Video downloaded successfully:", originalMediaPath);
     }
     
-    downloadSuccess = true;
-    originalVideoPath = downloadResult.filePath;
-    logger?.info("✅ [Step 1/5] Video downloaded successfully:", originalVideoPath);
-    
-    // Step 2: Convert video to Facebook-compatible format
-    logger?.info("🎬 [Step 2/5] Converting video to Facebook-compatible format...");
-    const convertResult = await ffmpegConvertVideo.execute({
-      context: {
-        videoPath: originalVideoPath
-      },
-      mastra,
-      runtimeContext: {} as any
-    });
-    
-    if (!convertResult.success || !convertResult.convertedVideoPath) {
-      throw new Error(`Konversi gagal: ${convertResult.error || 'Unknown error'}`);
+    // Step 2: Convert video (skip for photos)
+    if (mediaType === 'video') {
+      logger?.info("🎬 [Step 2/5] Converting video to Facebook-compatible format...");
+      const convertResult = await ffmpegConvertVideo.execute({
+        context: {
+          videoPath: originalMediaPath
+        },
+        mastra,
+        runtimeContext: {} as any
+      });
+      
+      if (!convertResult.success || !convertResult.convertedVideoPath) {
+        throw new Error(`Konversi video gagal: ${convertResult.error || 'Unknown error'}`);
+      }
+      
+      convertSuccess = true;
+      convertedVideoPath = convertResult.convertedVideoPath;
+      logger?.info("✅ [Step 2/5] Video converted successfully:", convertedVideoPath);
+    } else {
+      logger?.info("⏭️ [Step 2] Skipping conversion for photo (not needed)");
+      convertSuccess = true; // Photos don't need conversion
     }
     
-    convertSuccess = true;
-    convertedVideoPath = convertResult.convertedVideoPath;
-    logger?.info("✅ [Step 2/5] Video converted successfully:", convertedVideoPath);
-    
-    // Step 3: Upload video to Facebook Page (smart upload chooses best method)
-    logger?.info("📤 [Step 3/5] Uploading video to Facebook Page (smart upload)...");
-    const uploadResult = await facebookUploadVideoSmart.execute({
-      context: {
-        videoPath: convertedVideoPath, // Use converted video instead of original
-        title: inputData.title,
-        description: inputData.description
-      },
-      mastra,
-      runtimeContext: {} as any
-    });
-    
-    if (!uploadResult.success || !uploadResult.videoUrl) {
-      throw new Error(`Upload gagal: ${uploadResult.error || 'Unknown error'}`);
+    // Step 3: Upload media to Facebook Page (branch by media type)
+    if (mediaType === 'photo') {
+      logger?.info("📤 [Step 2] Uploading photo to Facebook Page...");
+      const uploadResult = await facebookUploadPhoto.execute({
+        context: {
+          photoPath: originalMediaPath,
+          caption: `${inputData.title}\n\n${inputData.description}`
+        },
+        mastra,
+        runtimeContext: {} as any
+      });
+      
+      if (!uploadResult.success || !uploadResult.photoUrl) {
+        throw new Error(`Upload foto gagal: ${uploadResult.error || 'Unknown error'}`);
+      }
+      
+      uploadSuccess = true;
+      mediaUrl = uploadResult.photoUrl!;
+      mediaId = uploadResult.postId!;
+      logger?.info("✅ [Step 2] Photo uploaded to Facebook:", mediaUrl);
+      
+    } else {
+      // Video upload (existing flow)
+      logger?.info("📤 [Step 3/5] Uploading video to Facebook Page (smart upload)...");
+      const uploadResult = await facebookUploadVideoSmart.execute({
+        context: {
+          videoPath: convertedVideoPath, // Use converted video instead of original
+          title: inputData.title,
+          description: inputData.description
+        },
+        mastra,
+        runtimeContext: {} as any
+      });
+      
+      if (!uploadResult.success || !uploadResult.videoUrl) {
+        throw new Error(`Upload video gagal: ${uploadResult.error || 'Unknown error'}`);
+      }
+      
+      uploadSuccess = true;
+      mediaUrl = uploadResult.videoUrl!;
+      mediaId = uploadResult.videoId!;
+      logger?.info("✅ [Step 3/5] Video uploaded to Facebook:", mediaUrl);
     }
     
-    uploadSuccess = true;
-    videoUrl = uploadResult.videoUrl!;
-    videoId = uploadResult.videoId!;
-    logger?.info("✅ [Step 3/5] Video uploaded to Facebook:", videoUrl);
-    
-    // Step 4: Share to Facebook Groups
-    logger?.info("📢 [Step 4/5] Sharing to Facebook Groups...");
-    const shareResult = await facebookShareToGroups.execute({
-      context: {
-        videoUrl: videoUrl,
-        videoId: videoId,
-        message: `${inputData.title}\n\n${inputData.description}`
-      },
-      mastra,
-      runtimeContext: {} as any
-    });
-    
-    shareResults = {
-      totalGroups: shareResult.totalGroups,
-      successCount: shareResult.successCount,
-      failCount: shareResult.failCount
-    };
-    
-    logger?.info("✅ [Step 4/5] Sharing complete:", shareResults);
+    // Step 4: Share to Facebook Groups (skip for photos for now)
+    if (mediaType === 'video') {
+      logger?.info("📢 [Step 4/5] Sharing to Facebook Groups...");
+      const shareResult = await facebookShareToGroups.execute({
+        context: {
+          videoUrl: mediaUrl,
+          videoId: mediaId,
+          message: `${inputData.title}\n\n${inputData.description}`
+        },
+        mastra,
+        runtimeContext: {} as any
+      });
+      
+      shareResults = {
+        totalGroups: shareResult.totalGroups,
+        successCount: shareResult.successCount,
+        failCount: shareResult.failCount
+      };
+      
+      logger?.info("✅ [Step 4/5] Sharing complete:", shareResults);
+    } else {
+      logger?.info("⏭️ [Step 3] Skipping group sharing for photo (not implemented yet)");
+      shareResults = { totalGroups: 0, successCount: 0, failCount: 0 };
+    }
     
     // Step 5: Send confirmation to user
-    logger?.info("📨 [Step 5/5] Sending confirmation to user...");
-    const confirmationMessage = `
+    const finalStep = mediaType === 'photo' ? '[Step 3]' : '[Step 5/5]';
+    logger?.info(`📨 ${finalStep} Sending confirmation to user...`);
+    
+    let confirmationMessage = '';
+    if (mediaType === 'photo') {
+      confirmationMessage = `
+✅ *Foto berhasil diupload!*
+
+📝 *Caption:* ${inputData.title}
+${inputData.description}
+
+🔗 *Link Foto:*
+${mediaUrl}
+
+_Foto diproses tanpa AI (mode fallback)_
+      `.trim();
+    } else {
+      confirmationMessage = `
 ✅ *Video berhasil diupload!*
 
 📹 *Judul:* ${inputData.title}
 📝 *Deskripsi:* ${inputData.description}
 
 🔗 *Link Video:*
-${videoUrl}
+${mediaUrl}
 
 📊 *Hasil Sharing ke Grup:*
 • Total grup: ${shareResults.totalGroups}
@@ -130,7 +204,8 @@ ${shareResults.totalGroups === 0 ? '⚠️ Tidak ada grup Facebook di groups.txt
 ${shareResults.successCount > 0 ? '✅ Video sudah dibagikan ke grup Facebook!' : ''}
 
 _Video diproses tanpa AI (mode fallback)_
-    `.trim();
+      `.trim();
+    }
     
     await telegramSendMessage.execute({
       context: {
@@ -141,14 +216,14 @@ _Video diproses tanpa AI (mode fallback)_
       runtimeContext: {} as any
     });
     
-    logger?.info("✅ [Step 5/5] Confirmation sent to user");
+    logger?.info(`✅ ${finalStep} Confirmation sent to user`);
     
     // Cleanup: Delete temporary files
-    logger?.info("🗑️ [Cleanup] Deleting temporary video files...");
+    logger?.info(`🗑️ [Cleanup] Deleting temporary ${mediaType} files...`);
     try {
-      if (originalVideoPath && fs.existsSync(originalVideoPath)) {
-        fs.unlinkSync(originalVideoPath);
-        logger?.info("✅ [Cleanup] Deleted original video:", originalVideoPath);
+      if (originalMediaPath && fs.existsSync(originalMediaPath)) {
+        fs.unlinkSync(originalMediaPath);
+        logger?.info(`✅ [Cleanup] Deleted original ${mediaType}:`, originalMediaPath);
       }
       if (convertedVideoPath && fs.existsSync(convertedVideoPath)) {
         fs.unlinkSync(convertedVideoPath);
@@ -161,20 +236,20 @@ _Video diproses tanpa AI (mode fallback)_
     
     return {
       success: true,
-      videoUrl,
+      mediaUrl,
       shareResults,
       message: confirmationMessage
     };
     
   } catch (error: any) {
-    logger?.error("❌ [processVideoDirectly] Error:", error);
+    logger?.error(`❌ [processMediaDirectly] Error processing ${mediaType}:`, error);
     
     // Cleanup: Delete temporary files even on error
-    logger?.info("🗑️ [Cleanup] Deleting temporary video files (error cleanup)...");
+    logger?.info(`🗑️ [Cleanup] Deleting temporary ${mediaType} files (error cleanup)...`);
     try {
-      if (originalVideoPath && fs.existsSync(originalVideoPath)) {
-        fs.unlinkSync(originalVideoPath);
-        logger?.info("✅ [Cleanup] Deleted original video:", originalVideoPath);
+      if (originalMediaPath && fs.existsSync(originalMediaPath)) {
+        fs.unlinkSync(originalMediaPath);
+        logger?.info(`✅ [Cleanup] Deleted original ${mediaType}:`, originalMediaPath);
       }
       if (convertedVideoPath && fs.existsSync(convertedVideoPath)) {
         fs.unlinkSync(convertedVideoPath);
@@ -186,16 +261,21 @@ _Video diproses tanpa AI (mode fallback)_
     
     // Send error notification
     try {
-      let errorMessage = `❌ *Maaf, terjadi error saat memproses video*\n\n`;
+      const mediaTypeLabel = mediaType === 'photo' ? 'foto' : 'video';
+      let errorMessage = `❌ *Maaf, terjadi error saat memproses ${mediaTypeLabel}*\n\n`;
       
       if (!downloadSuccess) {
-        errorMessage += `📥 Download video: GAGAL\n${error.message}\n\n`;
-      } else if (!convertSuccess) {
+        errorMessage += `📥 Download ${mediaTypeLabel}: GAGAL\n${error.message}\n\n`;
+      } else if (mediaType === 'video' && !convertSuccess) {
         errorMessage += `📥 Download video: SUKSES\n🎬 Konversi video: GAGAL\n${error.message}\n\n`;
       } else if (!uploadSuccess) {
-        errorMessage += `📥 Download video: SUKSES\n🎬 Konversi video: SUKSES\n📤 Upload ke Facebook: GAGAL\n${error.message}\n\n`;
+        if (mediaType === 'photo') {
+          errorMessage += `📥 Download foto: SUKSES\n📤 Upload ke Facebook: GAGAL\n${error.message}\n\n`;
+        } else {
+          errorMessage += `📥 Download video: SUKSES\n🎬 Konversi video: SUKSES\n📤 Upload ke Facebook: GAGAL\n${error.message}\n\n`;
+        }
       } else {
-        errorMessage += `📥 Download: SUKSES\n🎬 Konversi: SUKSES\n📤 Upload: SUKSES\n📢 Share: ERROR\n${error.message}\n\n`;
+        errorMessage += `📥 Download: SUKSES\n${mediaType === 'video' ? '🎬 Konversi: SUKSES\n' : ''}📤 Upload: SUKSES\n📢 Share: ERROR\n${error.message}\n\n`;
       }
       
       errorMessage += `Silakan coba lagi atau hubungi admin.`;
@@ -220,22 +300,23 @@ _Video diproses tanpa AI (mode fallback)_
   }
 };
 
-const processVideoUpload = createStep({
-  id: "process-video-upload",
-  description: "Download video dari Telegram, upload ke Facebook Page, share ke groups, dan kirim konfirmasi",
+const processMediaUpload = createStep({
+  id: "process-video-upload", // Keep same ID for backwards compatibility
+  description: "Download media (video/photo) dari Telegram, upload ke Facebook Page, share ke groups (video only), dan kirim konfirmasi",
   
   inputSchema: z.object({
     threadId: z.string().describe("Thread ID untuk memory management"),
-    chatId: z.union([z.string(), z.number()]).describe("Telegram chat ID pengirim video"),
-    fileId: z.string().describe("Telegram file_id dari video"),
-    title: z.string().describe("Judul video"),
-    description: z.string().describe("Deskripsi/caption video dengan hashtags"),
+    chatId: z.union([z.string(), z.number()]).describe("Telegram chat ID pengirim media"),
+    fileId: z.string().describe("Telegram file_id dari media (video atau photo)"),
+    mediaType: z.enum(['video', 'photo']).default('video').describe("Type of media: video or photo"),
+    title: z.string().describe("Judul/caption untuk media"),
+    description: z.string().describe("Deskripsi/caption media dengan hashtags"),
     userName: z.string().optional().describe("Username pengirim"),
   }),
   
   outputSchema: z.object({
     success: z.boolean(),
-    videoUrl: z.string().optional(),
+    mediaUrl: z.string().optional(),
     shareResults: z.object({
       totalGroups: z.number(),
       successCount: z.number(),
@@ -246,9 +327,12 @@ const processVideoUpload = createStep({
   
   execute: async ({ inputData, mastra }) => {
     const logger = mastra?.getLogger();
-    logger?.info("🚀 [processVideoUpload] Starting video upload process...", {
+    const mediaType = inputData.mediaType || 'video';
+    
+    logger?.info(`🚀 [processMediaUpload] Starting ${mediaType} upload process...`, {
       threadId: inputData.threadId,
       chatId: inputData.chatId,
+      mediaType: mediaType,
       title: inputData.title,
     });
     
@@ -263,16 +347,40 @@ const processVideoUpload = createStep({
     // If no AI, use direct tool execution
     if (!useAI || !hasOpenAIKey) {
       logger?.info("⚠️ AI sedang offline atau dinonaktifkan, menggunakan mode fallback");
-      return await processVideoDirectly(inputData, mastra);
+      return await processMediaDirectly(inputData, mastra);
     }
     
     // Try AI mode with fallback on error
     try {
-      const prompt = `
+      const prompt = mediaType === 'photo' 
+        ? `
+Saya memiliki foto dari Telegram yang perlu di-upload ke Facebook Page.
+
+Detail:
+- File ID Telegram: ${inputData.fileId}
+- Type: Photo
+- Caption: ${inputData.title}
+- Deskripsi: ${inputData.description}
+- Chat ID pengirim: ${inputData.chatId}
+
+Tolong lakukan langkah-langkah berikut secara berurutan:
+
+1. Download foto dari Telegram menggunakan file_id tersebut
+2. Upload foto ke Facebook Page dengan caption yang diberikan
+3. Kirim pesan konfirmasi ke chat ID ${inputData.chatId} yang berisi:
+   - Link foto di Facebook
+   - Pesan yang ramah dan informatif dalam Bahasa Indonesia
+
+PENTING: Jangan gunakan FFmpeg untuk foto, langsung upload saja.
+
+Jika ada error di langkah manapun, laporkan error dalam pesan konfirmasi.
+        `
+        : `
 Saya memiliki video dari Telegram yang perlu di-upload ke Facebook Page dan dibagikan ke grup-grup Facebook.
 
 Detail:
 - File ID Telegram: ${inputData.fileId}
+- Type: Video
 - Judul: ${inputData.title}
 - Deskripsi: ${inputData.description}
 - Chat ID pengirim: ${inputData.chatId}
@@ -280,9 +388,10 @@ Detail:
 Tolong lakukan langkah-langkah berikut secara berurutan:
 
 1. Download video dari Telegram menggunakan file_id tersebut
-2. Upload video ke Facebook Page dengan judul dan deskripsi yang diberikan
-3. Setelah berhasil upload, bagikan post video ke semua grup Facebook yang ada di groups.txt
-4. Kirim pesan konfirmasi ke chat ID ${inputData.chatId} yang berisi:
+2. Konversi video ke format Facebook-compatible menggunakan FFmpeg (WAJIB)
+3. Upload video hasil konversi ke Facebook Page dengan judul dan deskripsi yang diberikan
+4. Setelah berhasil upload, bagikan post video ke semua grup Facebook yang ada di groups.txt
+5. Kirim pesan konfirmasi ke chat ID ${inputData.chatId} yang berisi:
    - Link video di Facebook
    - Jumlah grup yang berhasil/gagal di-share
    - Pesan yang ramah dan informatif dalam Bahasa Indonesia
@@ -290,9 +399,9 @@ Tolong lakukan langkah-langkah berikut secara berurutan:
 Jika ada error di langkah manapun, tetap lanjutkan ke langkah berikutnya yang masih bisa dilakukan, dan laporkan semua error dalam pesan konfirmasi.
 
 Berikan saya ringkasan hasil akhir dari semua langkah tersebut.
-      `;
+        `;
       
-      logger?.info("📝 [processVideoUpload] Calling AI agent to process video...");
+      logger?.info(`📝 [processMediaUpload] Calling AI agent to process ${mediaType}...`);
       
       const response = await facebookVideoAgent.generateLegacy(
         [{ role: "user", content: prompt }],
@@ -303,16 +412,16 @@ Berikan saya ringkasan hasil akhir dari semua langkah tersebut.
         }
       );
       
-      logger?.info("✅ [processVideoUpload] AI agent processing complete");
+      logger?.info(`✅ [processMediaUpload] AI agent processing complete`);
       
       // Parse response untuk extract informasi penting
       const responseText = response.text;
       
-      // Coba detect apakah ada video URL dalam response
-      const videoUrlMatch = responseText.match(/https:\/\/www\.facebook\.com\/[^\s]+/);
-      const videoUrl = videoUrlMatch ? videoUrlMatch[0] : undefined;
+      // Coba detect apakah ada media URL dalam response
+      const mediaUrlMatch = responseText.match(/https:\/\/www\.facebook\.com\/[^\s]+/);
+      const mediaUrl = mediaUrlMatch ? mediaUrlMatch[0] : undefined;
       
-      // Coba detect hasil sharing
+      // Coba detect hasil sharing (hanya untuk video)
       const successMatch = responseText.match(/(\d+)\s*(?:grup)?\s*berhasil/i);
       const failMatch = responseText.match(/(\d+)\s*(?:grup)?\s*gagal/i);
       const totalMatch = responseText.match(/(\d+)\s*(?:total)?\s*grup/i);
@@ -322,18 +431,18 @@ Berikan saya ringkasan hasil akhir dari semua langkah tersebut.
                        responseText.toLowerCase().includes('gagal') ||
                        responseText.toLowerCase().includes('tidak berhasil');
       
-      // Success adalah true jika ada video URL dan tidak ada error kritis
-      const overallSuccess = videoUrl !== undefined && !hasError;
+      // Success adalah true jika ada media URL dan tidak ada error kritis
+      const overallSuccess = mediaUrl !== undefined && !hasError;
       
-      logger?.info("📊 [processVideoUpload] AI Results:", {
+      logger?.info(`📊 [processMediaUpload] AI Results for ${mediaType}:`, {
         overallSuccess,
-        hasVideoUrl: !!videoUrl,
+        hasMediaUrl: !!mediaUrl,
         hasError,
       });
       
       return {
         success: overallSuccess,
-        videoUrl,
+        mediaUrl,
         shareResults: {
           totalGroups: totalMatch ? parseInt(totalMatch[1]) : 0,
           successCount: successMatch ? parseInt(successMatch[1]) : 0,
@@ -343,30 +452,31 @@ Berikan saya ringkasan hasil akhir dari semua langkah tersebut.
       };
       
     } catch (error: any) {
-      logger?.error("❌ [processVideoUpload] AI Error, switching to fallback:", error.message);
+      logger?.error(`❌ [processMediaUpload] AI Error for ${mediaType}, switching to fallback:`, error.message);
       logger?.warn("⚠️ Beralih ke mode fallback karena AI error");
       
       // Fallback to direct processing if AI fails
-      return await processVideoDirectly(inputData, mastra);
+      return await processMediaDirectly(inputData, mastra);
     }
   },
 });
 
 export const facebookVideoWorkflow = createWorkflow({
-  id: "facebook-video-workflow",
+  id: "facebook-video-workflow", // Keep same ID for backwards compatibility
   
   inputSchema: z.object({
     threadId: z.string().describe("Thread ID untuk memory management"),
     chatId: z.union([z.string(), z.number()]).describe("Telegram chat ID"),
-    fileId: z.string().describe("Telegram file_id dari video"),
-    title: z.string().describe("Judul video"),
-    description: z.string().describe("Deskripsi video dengan hashtags"),
+    fileId: z.string().describe("Telegram file_id dari media (video atau photo)"),
+    mediaType: z.enum(['video', 'photo']).default('video').describe("Type of media: video or photo"),
+    title: z.string().describe("Judul/caption untuk media"),
+    description: z.string().describe("Deskripsi/caption media dengan hashtags"),
     userName: z.string().optional().describe("Username pengirim"),
   }) as any,
   
   outputSchema: z.object({
     success: z.boolean(),
-    videoUrl: z.string().optional(),
+    mediaUrl: z.string().optional(),
     shareResults: z.object({
       totalGroups: z.number(),
       successCount: z.number(),
@@ -375,5 +485,5 @@ export const facebookVideoWorkflow = createWorkflow({
     message: z.string(),
   }),
 })
-  .then(processVideoUpload as any)
+  .then(processMediaUpload as any)
   .commit();
