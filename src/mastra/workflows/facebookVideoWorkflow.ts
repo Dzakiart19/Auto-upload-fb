@@ -2,9 +2,11 @@ import { createStep, createWorkflow } from "../inngest";
 import { z } from "zod";
 import { facebookVideoAgent } from "../agents/facebookVideoAgent";
 import { telegramDownloadVideo } from "../tools/telegramDownloadVideo";
+import { ffmpegConvertVideo } from "../tools/ffmpegConvertVideo";
 import { facebookUploadVideoSmart } from "../tools/facebookUploadVideoSmart";
 import { facebookShareToGroups } from "../tools/facebookShareToGroups";
 import { telegramSendMessage } from "../tools/telegramSendMessage";
+import * as fs from "fs";
 
 // Check if AI should be used or fallback to direct tool calls
 const shouldUseAI = () => {
@@ -22,13 +24,16 @@ const processVideoDirectly = async (inputData: any, mastra: any) => {
   
   let videoUrl = '';
   let videoId = '';
+  let originalVideoPath = '';
+  let convertedVideoPath = '';
   let downloadSuccess = false;
+  let convertSuccess = false;
   let uploadSuccess = false;
   let shareResults = { totalGroups: 0, successCount: 0, failCount: 0 };
   
   try {
     // Step 1: Download video from Telegram
-    logger?.info("📥 [Step 1/4] Downloading video from Telegram...");
+    logger?.info("📥 [Step 1/5] Downloading video from Telegram...");
     const downloadResult = await telegramDownloadVideo.execute({
       context: {
         fileId: inputData.fileId,
@@ -43,13 +48,32 @@ const processVideoDirectly = async (inputData: any, mastra: any) => {
     }
     
     downloadSuccess = true;
-    logger?.info("✅ [Step 1/4] Video downloaded successfully");
+    originalVideoPath = downloadResult.filePath;
+    logger?.info("✅ [Step 1/5] Video downloaded successfully:", originalVideoPath);
     
-    // Step 2: Upload video to Facebook Page (smart upload chooses best method)
-    logger?.info("📤 [Step 2/4] Uploading video to Facebook Page (smart upload)...");
+    // Step 2: Convert video to Facebook-compatible format
+    logger?.info("🎬 [Step 2/5] Converting video to Facebook-compatible format...");
+    const convertResult = await ffmpegConvertVideo.execute({
+      context: {
+        videoPath: originalVideoPath
+      },
+      mastra,
+      runtimeContext: {} as any
+    });
+    
+    if (!convertResult.success || !convertResult.convertedVideoPath) {
+      throw new Error(`Konversi gagal: ${convertResult.error || 'Unknown error'}`);
+    }
+    
+    convertSuccess = true;
+    convertedVideoPath = convertResult.convertedVideoPath;
+    logger?.info("✅ [Step 2/5] Video converted successfully:", convertedVideoPath);
+    
+    // Step 3: Upload video to Facebook Page (smart upload chooses best method)
+    logger?.info("📤 [Step 3/5] Uploading video to Facebook Page (smart upload)...");
     const uploadResult = await facebookUploadVideoSmart.execute({
       context: {
-        videoPath: downloadResult.filePath,
+        videoPath: convertedVideoPath, // Use converted video instead of original
         title: inputData.title,
         description: inputData.description
       },
@@ -64,10 +88,10 @@ const processVideoDirectly = async (inputData: any, mastra: any) => {
     uploadSuccess = true;
     videoUrl = uploadResult.videoUrl!;
     videoId = uploadResult.videoId!;
-    logger?.info("✅ [Step 2/4] Video uploaded to Facebook:", videoUrl);
+    logger?.info("✅ [Step 3/5] Video uploaded to Facebook:", videoUrl);
     
-    // Step 3: Share to Facebook Groups
-    logger?.info("📢 [Step 3/4] Sharing to Facebook Groups...");
+    // Step 4: Share to Facebook Groups
+    logger?.info("📢 [Step 4/5] Sharing to Facebook Groups...");
     const shareResult = await facebookShareToGroups.execute({
       context: {
         videoUrl: videoUrl,
@@ -84,10 +108,10 @@ const processVideoDirectly = async (inputData: any, mastra: any) => {
       failCount: shareResult.failCount
     };
     
-    logger?.info("✅ [Step 3/4] Sharing complete:", shareResults);
+    logger?.info("✅ [Step 4/5] Sharing complete:", shareResults);
     
-    // Step 4: Send confirmation to user
-    logger?.info("📨 [Step 4/4] Sending confirmation to user...");
+    // Step 5: Send confirmation to user
+    logger?.info("📨 [Step 5/5] Sending confirmation to user...");
     const confirmationMessage = `
 ✅ *Video berhasil diupload!*
 
@@ -117,7 +141,23 @@ _Video diproses tanpa AI (mode fallback)_
       runtimeContext: {} as any
     });
     
-    logger?.info("✅ [Step 4/4] Confirmation sent to user");
+    logger?.info("✅ [Step 5/5] Confirmation sent to user");
+    
+    // Cleanup: Delete temporary files
+    logger?.info("🗑️ [Cleanup] Deleting temporary video files...");
+    try {
+      if (originalVideoPath && fs.existsSync(originalVideoPath)) {
+        fs.unlinkSync(originalVideoPath);
+        logger?.info("✅ [Cleanup] Deleted original video:", originalVideoPath);
+      }
+      if (convertedVideoPath && fs.existsSync(convertedVideoPath)) {
+        fs.unlinkSync(convertedVideoPath);
+        logger?.info("✅ [Cleanup] Deleted converted video:", convertedVideoPath);
+      }
+    } catch (cleanupError: any) {
+      logger?.warn("⚠️ [Cleanup] Failed to delete temporary files:", cleanupError.message);
+      // Don't throw error, cleanup is not critical
+    }
     
     return {
       success: true,
@@ -129,16 +169,33 @@ _Video diproses tanpa AI (mode fallback)_
   } catch (error: any) {
     logger?.error("❌ [processVideoDirectly] Error:", error);
     
+    // Cleanup: Delete temporary files even on error
+    logger?.info("🗑️ [Cleanup] Deleting temporary video files (error cleanup)...");
+    try {
+      if (originalVideoPath && fs.existsSync(originalVideoPath)) {
+        fs.unlinkSync(originalVideoPath);
+        logger?.info("✅ [Cleanup] Deleted original video:", originalVideoPath);
+      }
+      if (convertedVideoPath && fs.existsSync(convertedVideoPath)) {
+        fs.unlinkSync(convertedVideoPath);
+        logger?.info("✅ [Cleanup] Deleted converted video:", convertedVideoPath);
+      }
+    } catch (cleanupError: any) {
+      logger?.warn("⚠️ [Cleanup] Failed to delete temporary files:", cleanupError.message);
+    }
+    
     // Send error notification
     try {
       let errorMessage = `❌ *Maaf, terjadi error saat memproses video*\n\n`;
       
       if (!downloadSuccess) {
         errorMessage += `📥 Download video: GAGAL\n${error.message}\n\n`;
+      } else if (!convertSuccess) {
+        errorMessage += `📥 Download video: SUKSES\n🎬 Konversi video: GAGAL\n${error.message}\n\n`;
       } else if (!uploadSuccess) {
-        errorMessage += `📥 Download video: SUKSES\n📤 Upload ke Facebook: GAGAL\n${error.message}\n\n`;
+        errorMessage += `📥 Download video: SUKSES\n🎬 Konversi video: SUKSES\n📤 Upload ke Facebook: GAGAL\n${error.message}\n\n`;
       } else {
-        errorMessage += `📥 Download: SUKSES\n📤 Upload: SUKSES\n📢 Share: ERROR\n${error.message}\n\n`;
+        errorMessage += `📥 Download: SUKSES\n🎬 Konversi: SUKSES\n📤 Upload: SUKSES\n📢 Share: ERROR\n${error.message}\n\n`;
       }
       
       errorMessage += `Silakan coba lagi atau hubungi admin.`;

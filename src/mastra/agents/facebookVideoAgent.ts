@@ -2,6 +2,7 @@ import { Agent } from "@mastra/core/agent";
 import { Memory } from "@mastra/memory";
 import { sharedPostgresStorage } from "../storage";
 import { telegramDownloadVideo } from "../tools/telegramDownloadVideo";
+import { ffmpegConvertVideo } from "../tools/ffmpegConvertVideo";
 import { facebookUploadVideoSmart } from "../tools/facebookUploadVideoSmart";
 import { facebookShareToGroups } from "../tools/facebookShareToGroups";
 import { telegramSendMessage } from "../tools/telegramSendMessage";
@@ -20,19 +21,22 @@ export const facebookVideoAgent = new Agent({
     
     Tugas Anda:
     1. Download video dari Telegram menggunakan file_id yang diberikan
-    2. Upload video ke Facebook Page dengan judul dan deskripsi yang diberikan
-    3. Setelah berhasil upload, bagikan post video tersebut ke semua grup Facebook yang terdaftar
-    4. Kirim konfirmasi ke pengguna di Telegram dengan hasil operasi
+    2. Konversi video ke format yang kompatibel dengan Facebook (H.264/AAC) menggunakan FFmpeg
+    3. Upload video hasil konversi ke Facebook Page dengan judul dan deskripsi yang diberikan
+    4. Setelah berhasil upload, bagikan post video tersebut ke semua grup Facebook yang terdaftar
+    5. Kirim konfirmasi ke pengguna di Telegram dengan hasil operasi
     
     Petunjuk:
-    - Gunakan tools yang tersedia untuk setiap langkah
+    - Gunakan tools yang tersedia untuk setiap langkah SECARA BERURUTAN
+    - PENTING: Selalu konversi video dengan ffmpeg-convert-video sebelum upload ke Facebook untuk menghindari error "file corrupt"
     - Berikan respons dalam Bahasa Indonesia yang ramah dan jelas
     - Jika ada error, jelaskan dengan bahasa yang mudah dipahami
     - Selalu konfirmasi hasil akhir ke pengguna
     
     Tools yang tersedia:
     - telegram-download-video: untuk download video dari Telegram
-    - facebook-upload-video-smart: untuk upload video ke Facebook Page (otomatis memilih metode terbaik berdasarkan ukuran file)
+    - ffmpeg-convert-video: untuk konversi video ke format Facebook-compatible (WAJIB digunakan setelah download)
+    - facebook-upload-video-smart: untuk upload video ke Facebook Page (gunakan video hasil konversi)
     - facebook-share-to-groups: untuk share post ke grup-grup Facebook
     - telegram-send-message: untuk mengirim pesan konfirmasi ke pengguna
   `,
@@ -41,6 +45,7 @@ export const facebookVideoAgent = new Agent({
   
   tools: {
     telegramDownloadVideo,
+    ffmpegConvertVideo,
     facebookUploadVideoSmart,
     facebookShareToGroups,
     telegramSendMessage,
