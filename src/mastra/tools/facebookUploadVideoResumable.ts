@@ -351,22 +351,31 @@ export const facebookUploadVideoResumable = createTool({
       // Step 3: Finalize upload with title and description
       logger?.info('📝 [facebookUploadVideoResumable] Step 3: Finalizing upload...');
       
-      const finalizeUrl = `https://graph-video.facebook.com/v19.0/${pageId}/videos`;
-      const finalizeParams = new URLSearchParams({
-        access_token: pageAccessToken,
-        upload_phase: 'finish',
-        upload_session_id: uploadSessionId,
-        title: context.title,
-        description: context.description,
+      // IMPORTANT: Use POST body for title and description instead of URL query params
+      // to avoid "reduce the amount of data" error when description is long
+      // Using axios instead of fetch to avoid FormData streaming issues in Node.js
+      const finalizeUrl = `https://graph-video.facebook.com/v19.0/${pageId}/videos?access_token=${encodeURIComponent(pageAccessToken)}`;
+      
+      const finalizeFormData = new FormData();
+      finalizeFormData.append('upload_phase', 'finish');
+      finalizeFormData.append('upload_session_id', uploadSessionId);
+      finalizeFormData.append('title', context.title);
+      finalizeFormData.append('description', context.description);
+      
+      logger?.info('📤 [facebookUploadVideoResumable] Sending finalize request with metadata:', {
+        titleLength: context.title.length,
+        descriptionLength: context.description.length,
+        uploadSessionId,
       });
       
-      const finalizeResponse = await fetch(`${finalizeUrl}?${finalizeParams}`, {
-        method: 'POST',
+      const finalizeResponse = await axios.post(finalizeUrl, finalizeFormData, {
+        headers: finalizeFormData.getHeaders(),
+        timeout: 60000, // 60 seconds timeout
       });
       
-      const finalizeResult = await finalizeResponse.json();
+      const finalizeResult = finalizeResponse.data;
       
-      if (!finalizeResponse.ok || finalizeResult.error) {
+      if (finalizeResponse.status !== 200 || finalizeResult.error) {
         logger?.error('❌ [facebookUploadVideoResumable] Failed to finalize:', finalizeResult);
         return {
           success: false,

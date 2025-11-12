@@ -32,9 +32,9 @@ export const tiktokDownload = createTool({
       // Step 1: Get TikTok video metadata and download URL
       logger?.info('📝 [tiktokDownload] Fetching TikTok metadata...');
       
-      // Use v1 instead of v3 for better reliability (v3 often returns 404)
+      // Use v2 for best reliability (v1 fails with short URLs, v3 sometimes returns 404)
       const result = await Downloader(context.url, {
-        version: "v1" // Use v1 for better reliability, v3 often fails with 404
+        version: "v2" // v2 is most reliable
       });
       
       if (result.status !== "success" || !result.result) {
@@ -49,6 +49,7 @@ export const tiktokDownload = createTool({
       logger?.info('✅ [tiktokDownload] Metadata fetched:', {
         author: videoData.author?.nickname,
         description: videoData.desc?.substring(0, 100),
+        type: videoData.type,
       });
       
       // Extract metadata
@@ -66,9 +67,25 @@ export const tiktokDownload = createTool({
         author,
       });
       
-      // Step 2: Download video (v1 returns download array or direct URL)
-      // v1 structure: result.result.download could be direct URL or need different access
-      const videoUrl = videoData.download || videoData.video || videoData.videoHD || videoData.videoSD;
+      // Step 2: Download video
+      // v2 structure: result.video.playAddr[0] or result.video (string)
+      // v3 structure: result.videoHD or result.videoSD (need type assertion)
+      let videoUrl: string | undefined;
+      
+      if (videoData.video) {
+        // v2 format
+        if (typeof videoData.video === 'string') {
+          videoUrl = videoData.video;
+        } else if (videoData.video.playAddr && Array.isArray(videoData.video.playAddr)) {
+          videoUrl = videoData.video.playAddr[0];
+        }
+      }
+      
+      // Fallback to v3 format if v2 didn't work (use type assertion for v3 properties)
+      if (!videoUrl) {
+        const videoDataAny = videoData as any;
+        videoUrl = videoDataAny.videoHD || videoDataAny.videoSD;
+      }
       
       if (!videoUrl) {
         logger?.error('❌ [tiktokDownload] No video URL found in response');
