@@ -114,6 +114,8 @@ Preferred communication style: Simple, everyday language.
 - **External Hosting Compatibility**: Configured for deployment to Koyeb, Heroku, Render, and similar platforms that inject dynamic ports and read Procfile for start commands.
 - **Procfile**: Defines web process as `mastra dev` for hosting platforms.
 - **Port Binding**: Server binds to `0.0.0.0` with dynamic port to accept external connections.
+- **Critical Dependency**: `mastra@0.14.0` must be in `dependencies` (not `devDependencies`) for production deployment, as hosting platforms only install production dependencies. This ensures the `mastra` CLI is available when the Procfile executes `mastra dev`.
+- **Version Compatibility**: Project uses `mastra@0.14.0` to maintain compatibility with `@mastra/core@0.20.0`. Newer mastra versions (0.18+) require `@mastra/core@0.24.0+` and will cause dependency conflicts.
 
 ## Health Check & Monitoring
 - **Health Endpoint**: `/health` for monitoring services, providing status, uptime, timestamp, and service name.
