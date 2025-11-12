@@ -303,17 +303,21 @@ export const mastra = new Mastra({
       // ...registerSlackTrigger({ ... }),
       // ...registerStripeWebhook({ ... }),
       
-      // Telegram trigger for video upload to Facebook
+      // Telegram trigger for media upload to Facebook (handles both video and photo)
       ...registerTelegramTrigger({
-        triggerType: "telegram/video",
+        triggerType: "telegram/media",
         handler: async (mastra, triggerInfo) => {
           const logger = mastra.getLogger();
-          logger?.info("🎯 [Telegram Trigger] Processing video upload", {
+          const mediaType = triggerInfo.params.mediaType || 'video';
+          const mediaLabel = mediaType === 'photo' ? 'photo' : 'video';
+          
+          logger?.info(`🎯 [Telegram Trigger] Processing ${mediaLabel} upload`, {
             chatId: triggerInfo.params.chatId,
             fileId: triggerInfo.params.fileId,
+            mediaType: mediaType,
           });
 
-          const threadId = `telegram-video-${triggerInfo.params.chatId}-${Date.now()}`;
+          const threadId = `telegram-${mediaType}-${triggerInfo.params.chatId}-${Date.now()}`;
 
           const run = await facebookVideoWorkflow.createRunAsync();
           await run.start({
@@ -321,6 +325,7 @@ export const mastra = new Mastra({
               threadId,
               chatId: triggerInfo.payload.chatId,
               fileId: triggerInfo.payload.fileId,
+              mediaType: triggerInfo.payload.mediaType || 'video',
               title: triggerInfo.payload.title,
               description: triggerInfo.payload.description,
               userName: triggerInfo.payload.userName,
