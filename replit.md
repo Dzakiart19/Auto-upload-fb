@@ -6,12 +6,12 @@ The application allows users to send **videos or photos** through Telegram, prov
 
 Key capabilities include:
 - **Media Type Support**: Handles both videos and photos from Telegram
-- **Engagement Optimization** (November 2025):
-  - **Auto-generated Engaging Captions**: Emoji-rich captions with call-to-action tailored by content category
+- **Simple Caption System** (Updated November 12, 2025):
+  - **Direct User Input**: Uses user's caption/description exactly as provided - NO modifications or "alay" additions
   - **Trending Hashtags**: Auto-generated hashtags (up to 15) based on category, title keywords, and global trends
-  - **Category Detection**: Automatically detects content category (meme, gaming, tutorial, etc.) for optimized captions
+  - **Category Detection**: Automatically detects content category (meme, gaming, tutorial, etc.) for optimized hashtags
   - **Multi-language Support**: Indonesian and English hashtag generation
-  - **Viral Formula**: Combines hooks, emojis, call-to-action, and engagement footers
+  - **Clean Format**: User input + hashtags only - simple and straightforward
 - **Video Processing**: 
   - Automatic format conversion using FFmpeg to ensure Facebook compatibility
   - Smart upload method selection (simple vs. resumable based on file size)
@@ -30,6 +30,13 @@ Key capabilities include:
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
+
+**Caption Style Preference** (November 12, 2025):
+- User prefers SIMPLE captions - use their input directly without modifications
+- NO "alay" style with excessive emojis, call-to-actions, or engagement footers
+- NO phrases like: "Cek ini!", "Follow untuk konten lebih seru!", "Tag teman kamu!", "Double tap!", etc.
+- Format: Just user's title/description + hashtags (hashtags are OK)
+- Keep it clean and straightforward - let the content speak for itself
 
 # System Architecture
 
@@ -68,21 +75,17 @@ Preferred communication style: Simple, everyday language.
 - **Mastra Playground UI**: Visualizes workflow graphs and nodes for development.
 
 ## Technical Implementations
-- **Engagement Optimization System** (November 2025):
-    - **Tool**: `generateEngagingCaption` - Creates viral-worthy captions with emojis and call-to-action
-    - **Categories Supported**: meme, comedy, tutorial, motivasi, gaming, lifestyle, teknologi, kuliner, travel, music, sports, **brainrot**, **absurd**, **random**, **perfectcut**, general
-    - **Caption Structure**: Hook + Title + Emoji + CTA + Engagement footer
-    - **Customizable**: Language (ID/EN), category-specific templates
-    - **Style Updates** (November 12, 2025): Meme/brainrot hooks now use Indonesian gaul style ("POV:", "Anjir! 😭", "Receh banget! 🤣", "Brainrot content! 🔥")
+- **Simple Caption & Hashtag System** (Updated November 12, 2025):
+    - **Caption Strategy**: Uses user input DIRECTLY - NO auto-generated "alay" captions with emojis/CTAs
     - **Tool**: `generateTrendingHashtags` - Generates trending hashtags for maximum discoverability
-    - **Niche Focus** (November 12, 2025): **Optimized for Indonesian meme absurd/brainrot/random niche**
+    - **Categories Supported**: meme, comedy, tutorial, motivasi, gaming, lifestyle, teknologi, kuliner, travel, music, sports, **brainrot**, **absurd**, **random**, **perfectcut**, general
+    - **Niche Focus**: **Optimized for Indonesian meme absurd/brainrot/random niche**
     - **Hashtag Sources**: Category-specific niche tags (ID: #memeindo, #memeabsurd, #brainrot, #humorabsurd, #randomvideo, #perfectcut, #videolucu; EN: #absurdhumor, #brainrotmemes, #randomvideos), title keywords, minimal viral hashtags
     - **Max Hashtags**: Configurable (default 15)
     - **Generic Tags Removed**: Eliminated generic viral hashtags (#viral, #trending, #fyp, #foryou, #foryoupage, #explore, #instagram, #facebook) in favor of niche-specific tags
-    - **New Categories**: brainrot (brainrot memes), absurd (absurd humor), random (random content), perfectcut (perfectly cut videos)
     - **Category Detection**: Automatic keyword-based detection for all 15 categories including new niche categories
-    - **Integration**: Automatically applied to all video/photo uploads in fallback mode
-    - **AI Mode**: Agent instructed to use these tools for all uploads
+    - **Integration**: Hashtags automatically applied to all video/photo uploads
+    - **Format**: User caption + Generated hashtags (clean and simple)
 - **Media Type Branching** (November 2025):
     - **Unified Workflow**: Single workflow handles both videos and photos with intelligent branching
     - **Video Flow**: download → FFmpeg convert → upload → share to groups → notify

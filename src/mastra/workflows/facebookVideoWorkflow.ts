@@ -120,26 +120,19 @@ const processMediaDirectly = async (inputData: any, mastra: any) => {
   let optimizedHashtags = '';
   
   try {
-    // Step 0: Generate optimized caption and hashtags (with graceful fallback)
-    logger?.info("✨ [Step 0] Generating engaging caption and trending hashtags...");
+    // Step 0: Use simple user input + generate hashtags only (no fancy captions)
+    logger?.info("✨ [Step 0] Preparing caption from user input and generating hashtags...");
     
     // Validate and provide defaults for required inputs
     const safeTitle = inputData.title || 'Media upload';
     const safeDescription = inputData.description || '';
     const category = detectCategory(safeTitle, logger);
     
-    // Try to generate optimized caption and hashtags, but fall back to user input if it fails
+    // Use user input directly as caption (simple, no "alay" stuff)
+    optimizedCaption = safeDescription ? `${safeTitle}\n\n${safeDescription}` : safeTitle;
+    
+    // Generate hashtags only (keep hashtags for discoverability)
     try {
-      const captionResult = await generateEngagingCaption.execute({
-        context: {
-          title: safeTitle,
-          category: category,
-          language: "id",
-        },
-        mastra,
-        runtimeContext: {} as any
-      });
-      
       const hashtagResult = await generateTrendingHashtags.execute({
         context: {
           title: safeTitle,
@@ -151,26 +144,25 @@ const processMediaDirectly = async (inputData: any, mastra: any) => {
         runtimeContext: {} as any
       });
       
-      optimizedCaption = captionResult.caption;
       optimizedHashtags = hashtagResult.hashtags;
       
-      logger?.info("✅ [Step 0] Caption and hashtags generated successfully", {
+      logger?.info("✅ [Step 0] Hashtags generated successfully", {
         category,
-        captionLength: optimizedCaption.length,
         hashtagCount: hashtagResult.count,
       });
       
-    } catch (captionError: any) {
-      // Graceful fallback: use user-provided caption/description if optimization fails
-      logger?.warn("⚠️ [Step 0] Caption/hashtag generation failed, using user input as fallback", {
-        error: captionError.message,
+    } catch (hashtagError: any) {
+      // Fallback: use user description as hashtags if generation fails
+      logger?.warn("⚠️ [Step 0] Hashtag generation failed, using user description", {
+        error: hashtagError.message,
       });
       
-      optimizedCaption = safeTitle;
       optimizedHashtags = safeDescription;
-      
-      logger?.info("✅ [Step 0] Using fallback caption (user input)");
     }
+    
+    logger?.info("✅ [Step 0] Caption ready (simple user input)", {
+      captionLength: optimizedCaption.length,
+    });
     // Step 1: Download media from Telegram (branch by media type)
     if (mediaType === 'photo') {
       logger?.info("📥 [Step 1] Downloading photo from Telegram...");
@@ -323,52 +315,26 @@ const processMediaDirectly = async (inputData: any, mastra: any) => {
     let confirmationMessage = '';
     if (mediaType === 'photo') {
       confirmationMessage = `
-✅ *Foto berhasil diupload dengan caption optimal!*
+✅ *Foto berhasil diupload!*
 
-📝 *Caption yang digunakan:*
 ${optimizedCaption}
 
-🏷️ *Hashtags:*
 ${optimizedHashtags}
 
-🔗 *Link Foto:*
-${mediaUrl}
-
-💡 *Tips Engagement:*
-• Caption dan hashtag sudah dioptimasi untuk viral
-• Like dan comment di post untuk boost algoritma
-• Share ke story pribadi untuk reach maksimal
-
-_Foto diproses dengan optimasi engagement otomatis_
+Link: ${mediaUrl}
       `.trim();
     } else {
       confirmationMessage = `
-✅ *Video berhasil diupload dengan caption optimal!*
+✅ *Video berhasil diupload!*
 
-📝 *Caption yang digunakan:*
 ${optimizedCaption}
 
-🏷️ *Hashtags:*
 ${optimizedHashtags}
 
-🔗 *Link Video:*
-${mediaUrl}
+Link: ${mediaUrl}
 
-📊 *Hasil Sharing ke Grup:*
-• Total grup: ${shareResults.totalGroups}
-• Berhasil: ${shareResults.successCount}
-• Gagal: ${shareResults.failCount}
-
-${shareResults.totalGroups === 0 ? '⚠️ Tidak ada grup Facebook di groups.txt' : ''}
-${shareResults.successCount > 0 ? '✅ Video sudah dibagikan ke grup Facebook!' : ''}
-
-💡 *Tips Meningkatkan Views:*
-• Caption dan hashtag sudah dioptimasi untuk viral
-• ${shareResults.successCount === 0 ? 'Share manual ke grup pribadi atau story untuk boost awal' : 'Like dan comment di post untuk boost algoritma'}
-• Tag teman-teman di komentar untuk reach organik
-• Post di waktu prime time (18:00-22:00 WIB)
-
-_Video diproses dengan optimasi engagement otomatis_
+Dibagikan ke ${shareResults.successCount} dari ${shareResults.totalGroups} grup
+${shareResults.totalGroups === 0 ? '(Tidak ada grup di groups.txt)' : ''}
       `.trim();
     }
     
