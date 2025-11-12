@@ -183,11 +183,13 @@ export function registerTelegramTrigger({
           }
 
           // Handle URL detection (TikTok/Instagram)
-          if (text && !currentState) {
+          // Support URL detection even when in awaiting_media state
+          if (text && (!currentState || currentState.step === 'awaiting_media')) {
             logger?.info('🔍 [Telegram] Checking for TikTok/Instagram URLs in text...', { text });
             
             // Extract actual URL from message (handles cases like "Check this: https://tiktok.com/...")
-            const tiktokRegex = /(https?:\/\/)?(www\.)?(tiktok\.com|vm\.tiktok\.com)\/[^\s]+/i;
+            // Include vt.tiktok.com for short URLs
+            const tiktokRegex = /(https?:\/\/)?(www\.)?(tiktok\.com|vm\.tiktok\.com|vt\.tiktok\.com)\/[^\s]+/i;
             const instagramRegex = /(https?:\/\/)?(www\.)?instagram\.com\/(p|reel)\/[^\s]+/i;
             
             const tiktokMatch = text.match(tiktokRegex);
