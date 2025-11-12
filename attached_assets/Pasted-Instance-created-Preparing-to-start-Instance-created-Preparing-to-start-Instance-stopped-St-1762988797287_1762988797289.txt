@@ -1,0 +1,96 @@
+Instance created. Preparing to start...
+Instance created. Preparing to start...
+Instance stopped.
+Starting download for registry01.prod.koyeb.com/k-52d876ba-41d5-4c8c-8e13-18cfc19e8371/72b254d2-6847-4642-9e28-7b3a0627465c:08afb905-34a5-4479-9839-4c612e099b57
+Download progress:  44% |[32m+++[0m-----| (24.4 MiB/s)
+Download progress: 100% |[32m++++++++[0m| (7.9 MiB/s)
+Download complete for registry01.prod.koyeb.com/k-52d876ba-41d5-4c8c-8e13-18cfc19e8371/72b254d2-6847-4642-9e28-7b3a0627465c:08afb905-34a5-4479-9839-4c612e099b57
+Instance is starting... Waiting for health checks to pass.
+(node:34) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+<anonymous_script>:1
+require('crypto');
+^
+
+ReferenceError: require is not defined in ES module scope, you can use import instead
+    at eval (eval at _0x474989 (file:///workspace/.mastra/output/mastra.mjs:192521:37), <anonymous>:1:1)
+    at _0x474989 (file:///workspace/.mastra/output/mastra.mjs:192521:37)
+    at _0x38ba77 (file:///workspace/.mastra/output/mastra.mjs:192509:39)
+    at file:///workspace/.mastra/output/mastra.mjs:192594:29
+    at file:///workspace/.mastra/output/mastra.mjs:192596:10
+    at _0x5cd844 (file:///workspace/.mastra/output/mastra.mjs:192154:12)
+    at file:///workspace/.mastra/output/mastra.mjs:192477:17
+    at ModuleJob.run (node:internal/modules/esm/module_job:303:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:663:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:99:5)
+
+Node.js v24.0.2
+Application exited with code 0
+(node:34) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+<anonymous_script>:1
+require('crypto');
+^
+
+ReferenceError: require is not defined in ES module scope, you can use import instead
+    at eval (eval at _0x474989 (file:///workspace/.mastra/output/mastra.mjs:192521:37), <anonymous>:1:1)
+    at _0x474989 (file:///workspace/.mastra/output/mastra.mjs:192521:37)
+    at _0x38ba77 (file:///workspace/.mastra/output/mastra.mjs:192509:39)
+    at file:///workspace/.mastra/output/mastra.mjs:192594:29
+    at file:///workspace/.mastra/output/mastra.mjs:192596:10
+    at _0x5cd844 (file:///workspace/.mastra/output/mastra.mjs:192154:12)
+    at file:///workspace/.mastra/output/mastra.mjs:192477:17
+    at ModuleJob.run (node:internal/modules/esm/module_job:303:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:663:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:99:5)
+
+Node.js v24.0.2
+Application exited with code 0
+Instance stopped.
+Instance created. Preparing to start...
+Starting download for registry01.prod.koyeb.com/k-52d876ba-41d5-4c8c-8e13-18cfc19e8371/72b254d2-6847-4642-9e28-7b3a0627465c:08afb905-34a5-4479-9839-4c612e099b57
+Download progress:  52% |[32m++++[0m----| (28.8 MiB/s)
+Download progress: 100% |[32m++++++++[0m| (7.9 MiB/s)
+Download complete for registry01.prod.koyeb.com/k-52d876ba-41d5-4c8c-8e13-18cfc19e8371/72b254d2-6847-4642-9e28-7b3a0627465c:08afb905-34a5-4479-9839-4c612e099b57
+Instance is starting... Waiting for health checks to pass.
+(node:34) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+<anonymous_script>:1
+require('crypto');
+^
+
+ReferenceError: require is not defined in ES module scope, you can use import instead
+    at eval (eval at _0x474989 (file:///workspace/.mastra/output/mastra.mjs:192521:37), <anonymous>:1:1)
+    at _0x474989 (file:///workspace/.mastra/output/mastra.mjs:192521:37)
+    at _0x38ba77 (file:///workspace/.mastra/output/mastra.mjs:192509:39)
+    at file:///workspace/.mastra/output/mastra.mjs:192594:29
+    at file:///workspace/.mastra/output/mastra.mjs:192596:10
+    at _0x5cd844 (file:///workspace/.mastra/output/mastra.mjs:192154:12)
+    at file:///workspace/.mastra/output/mastra.mjs:192477:17
+    at ModuleJob.run (node:internal/modules/esm/module_job:303:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:663:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:99:5)
+
+Node.js v24.0.2
+Application exited with code 0
+(node:34) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+<anonymous_script>:1
+require('crypto');
+^
+
+ReferenceError: require is not defined in ES module scope, you can use import instead
+    at eval (eval at _0x474989 (file:///workspace/.mastra/output/mastra.mjs:192521:37), <anonymous>:1:1)
+    at _0x474989 (file:///workspace/.mastra/output/mastra.mjs:192521:37)
+    at _0x38ba77 (file:///workspace/.mastra/output/mastra.mjs:192509:39)
+    at file:///workspace/.mastra/output/mastra.mjs:192594:29
+    at file:///workspace/.mastra/output/mastra.mjs:192596:10
+    at _0x5cd844 (file:///workspace/.mastra/output/mastra.mjs:192154:12)
+    at file:///workspace/.mastra/output/mastra.mjs:192477:17
+    at ModuleJob.run (node:internal/modules/esm/module_job:303:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:663:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:99:5)
+
+Node.js v24.0.2
+Application exited with code 0
+Instance stopped.

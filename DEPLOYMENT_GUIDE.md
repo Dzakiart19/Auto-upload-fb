@@ -1,21 +1,25 @@
 # Panduan Deploy ke Koyeb
 
+## ⚠️ PENTING: Gunakan Docker Deployment
+
+Aplikasi Mastra memiliki issue dengan buildpack standard Koyeb karena bundler Mastra menggunakan `require('crypto')` yang tidak kompatibel dengan ES modules. Solusinya adalah menggunakan Docker deployment.
+
 ## Langkah-langkah Deploy
 
 ### 1. Persiapan di Koyeb
 
 1. Buka [app.koyeb.com](https://app.koyeb.com)
 2. Klik **Create App** atau **New Service**
-3. Pilih metode deployment: **GitHub** (disarankan)
+3. Pilih metode deployment: **GitHub**
 
 ### 2. Konfigurasi Build & Run
 
-Pastikan pengaturan berikut di Koyeb:
+**PENTING**: Pilih Docker sebagai builder!
 
 #### Build Settings:
-- **Builder**: `buildpack` (default)
-- **Build command**: `npm run build`
-- **Run command**: `npx mastra start` (atau biarkan kosong, akan otomatis baca dari Procfile)
+- **Builder**: **Docker** (JANGAN gunakan buildpack!)
+- **Dockerfile**: `Dockerfile` (default)
+- **Docker build context**: `.` (root directory)
 
 #### Environment Settings:
 - **Port**: `3000` (default untuk Mastra)
@@ -57,18 +61,27 @@ Tambahkan juga environment variables lain yang dibutuhkan aplikasi Anda (databas
 - Verify PORT environment variable di set ke 3000
 
 ### Application Exit Code 127
-- Pastikan Run command menggunakan: `npx mastra start`
+- Pastikan menggunakan Docker deployment (BUKAN buildpack)
 - JANGAN gunakan `mastra dev` di production
-- JANGAN jalankan file langsung dengan `node .mastra/output/index.mjs`
 
-### Module/Require Errors
-- Pastikan `"type": "module"` ada di package.json (sudah ✓)
-- Gunakan `npx mastra start` bukan menjalankan file output langsung
+### Module/Require Errors (crypto/eval issues)
+- **Solusi**: Gunakan Docker deployment
+- Issue ini adalah bug yang diketahui di Mastra (GitHub #5169)
+- Buildpack standard tidak mendukung eval dengan require di ES modules
+- Docker memberikan full Node.js runtime yang diperlukan
 
-## File yang Sudah Diperbaiki
+## File yang Sudah Dibuat/Diperbaiki
 
-- ✅ `Procfile` - Sudah diupdate untuk production
-- ✅ Build output akan dibuat otomatis di Koyeb
+- ✅ `Dockerfile` - Konfigurasi Docker untuk deployment
+- ✅ `.dockerignore` - Exclude file yang tidak perlu di container
+- ✅ `Procfile` - Sudah diupdate (tapi tidak dipakai saat Docker deployment)
+- ✅ Build output akan dibuat otomatis di dalam Docker container
+
+## Kenapa Harus Docker?
+
+Mastra framework memiliki issue dengan bundler yang menggunakan `require('crypto')` di dalam eval. Ini tidak kompatibel dengan ES module di buildpack standard. Docker memberikan full Node.js runtime sehingga aplikasi bisa berjalan dengan sempurna.
+
+**GitHub Issue**: https://github.com/mastra-ai/mastra/issues/5169
 
 ## Push ke GitHub
 
