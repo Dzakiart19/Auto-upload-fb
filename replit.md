@@ -91,6 +91,17 @@ Preferred communication style: Simple, everyday language.
     - **Video Flow**: download → FFmpeg convert → upload → share to groups → notify
     - **Photo Flow**: download → upload → notify (skips conversion and group sharing)
     - **Backwards Compatible**: Maintains existing video workflow IDs and behavior
+- **Workflow Branching for Manual & URL Uploads** (Fixed November 12, 2025):
+    - **Issue**: Upload manual error setelah fitur TikTok/Instagram ditambahkan
+    - **Root Cause**: Step `prepareMediaData` mencampurkan manual upload (fileId) dan URL flow (localFilePath)
+    - **Solution**: 
+      - Menambahkan flag `isUrlFlow` untuk explicit branching
+      - Validasi ketat per-branch (manual require fileId, URL require localFilePath)
+      - Clear separation di `processMediaDirectly` berdasarkan flow type
+      - Enhanced logging untuk debugging
+    - **Manual Flow**: Telegram trigger → validate fileId → download dari Telegram → process
+    - **URL Flow**: Telegram URL detection → download dari TikTok/Instagram → validate localFilePath → process
+    - **Backward Compatible**: Tidak mengubah API atau behavior yang sudah ada
 - **Facebook Video Upload**:
     - Proper `Content-Type` and filename handling for Facebook Graph API.
     - Video metadata helper for MIME type detection and extension handling.
