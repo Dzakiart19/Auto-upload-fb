@@ -2,6 +2,7 @@ import { createTool } from "@mastra/core/tools";
 import { z } from "zod";
 import * as fs from "fs";
 import FormData from "form-data";
+import axios from "axios";
 import { getFacebookCredentials } from "./facebookHelpers";
 
 /**
@@ -212,6 +213,8 @@ export const facebookUploadPhoto = createTool({
       
       // Create form data for photo upload
       const formData = new FormData();
+      
+      // Use file stream (axios handles it better than fetch)
       formData.append('source', fs.createReadStream(context.photoPath), {
         filename: photoMetadata.filename,
         contentType: photoMetadata.contentType,
@@ -219,27 +222,27 @@ export const facebookUploadPhoto = createTool({
       formData.append('caption', context.caption);
       formData.append('published', 'true');
       
-      // Upload photo to Facebook Page
+      // Upload photo to Facebook Page using axios
       const uploadUrl = `https://graph.facebook.com/v21.0/${pageId}/photos?access_token=${encodeURIComponent(pageAccessToken)}`;
       
       logger?.info('📤 [facebookUploadPhoto] Sending request to Facebook API');
       
-      const uploadResponse = await fetch(uploadUrl, {
-        method: 'POST',
-        body: formData as any,
+      // Axios handles multipart/form-data automatically
+      const uploadResponse = await axios.post(uploadUrl, formData, {
         headers: formData.getHeaders(),
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity,
       });
       
-      const uploadResult = await uploadResponse.json();
+      const uploadResult = uploadResponse.data;
       
       logger?.info('📊 [facebookUploadPhoto] Facebook API response:', {
-        ok: uploadResponse.ok,
         status: uploadResponse.status,
         hasError: !!uploadResult.error,
         result: uploadResult
       });
       
-      if (!uploadResponse.ok || uploadResult.error) {
+      if (uploadResult.error) {
         const errorCode = uploadResult.error?.code || uploadResponse.status;
         const errorMessage = uploadResult.error?.message || 'Unknown error';
         const errorType = uploadResult.error?.type || 'Unknown';
