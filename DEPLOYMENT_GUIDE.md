@@ -15,7 +15,7 @@ Pastikan pengaturan berikut di Koyeb:
 #### Build Settings:
 - **Builder**: `buildpack` (default)
 - **Build command**: `npm run build`
-- **Run command**: `node .mastra/output/index.mjs`
+- **Run command**: `npx mastra start` (atau biarkan kosong, akan otomatis baca dari Procfile)
 
 #### Environment Settings:
 - **Port**: `3000` (default untuk Mastra)
@@ -57,8 +57,13 @@ Tambahkan juga environment variables lain yang dibutuhkan aplikasi Anda (databas
 - Verify PORT environment variable di set ke 3000
 
 ### Application Exit Code 127
-- Pastikan Run command menggunakan: `node .mastra/output/index.mjs`
+- Pastikan Run command menggunakan: `npx mastra start`
 - JANGAN gunakan `mastra dev` di production
+- JANGAN jalankan file langsung dengan `node .mastra/output/index.mjs`
+
+### Module/Require Errors
+- Pastikan `"type": "module"` ada di package.json (sudah ✓)
+- Gunakan `npx mastra start` bukan menjalankan file output langsung
 
 ## File yang Sudah Diperbaiki
 

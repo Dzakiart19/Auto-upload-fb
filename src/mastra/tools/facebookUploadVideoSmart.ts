@@ -109,7 +109,7 @@ export const facebookUploadVideoSmart = createTool({
           logger?.warn(`⚠️ [facebookUploadVideoSmart] Error: ${uploadResult.error}`);
           
           // Check if video file still exists
-          if (!require('fs').existsSync(context.videoPath)) {
+          if (!fs.existsSync(context.videoPath)) {
             logger?.error('❌ [facebookUploadVideoSmart] Video file was deleted by simple upload, cannot retry');
             return uploadResult; // Return original error
           }
