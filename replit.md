@@ -107,6 +107,13 @@ Preferred communication style: Simple, everyday language.
 ## Configuration Files
 - `.env`: Environment variables for API keys and tokens.
 - `groups.txt`: Stores Facebook Group IDs for automated sharing.
+- `Procfile`: Deployment configuration for external hosting platforms (Koyeb, Heroku, Render), specifies `web: mastra dev` as the start command.
+
+## Deployment Configuration
+- **Dynamic Port Support**: Server automatically uses `process.env.PORT` environment variable from hosting platform, with fallback to port 5000 for local development.
+- **External Hosting Compatibility**: Configured for deployment to Koyeb, Heroku, Render, and similar platforms that inject dynamic ports and read Procfile for start commands.
+- **Procfile**: Defines web process as `mastra dev` for hosting platforms.
+- **Port Binding**: Server binds to `0.0.0.0` with dynamic port to accept external connections.
 
 ## Health Check & Monitoring
 - **Health Endpoint**: `/health` for monitoring services, providing status, uptime, timestamp, and service name.
