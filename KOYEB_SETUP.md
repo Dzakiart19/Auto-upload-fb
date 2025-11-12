@@ -32,7 +32,6 @@ git push origin main
 Tambahkan **SEMUA** environment variables berikut:
 
 ```
-NODE_ENV=production
 PORT=8000
 PUBLIC_URL=https://biological-malanie-dzeckyete-91da18c7.koyeb.app
 TELEGRAM_BOT_TOKEN=<your-telegram-bot-token>
@@ -41,7 +40,9 @@ FB_PAGE_ID=<your-facebook-page-id>
 FB_ACCESS_TOKEN=<your-facebook-access-token>
 ```
 
-**PENTING**: Ganti nilai yang di dalam `<...>` dengan kredensial Anda!
+**PENTING**: 
+- Ganti nilai yang di dalam `<...>` dengan kredensial Anda!
+- **JANGAN set NODE_ENV=production** - biarkan kosong agar workflow berjalan dengan benar
 
 ### 3. Instance Settings
 

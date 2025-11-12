@@ -31,7 +31,6 @@ Aplikasi Mastra memiliki issue dengan buildpack standard Koyeb karena bundler Ma
 **PENTING**: Tambahkan environment variables berikut di Koyeb:
 
 ```
-NODE_ENV=production
 PORT=8000
 PUBLIC_URL=https://your-app-name.koyeb.app
 OPENAI_API_KEY=<your-key>
@@ -44,6 +43,7 @@ FB_ACCESS_TOKEN=<your-facebook-access-token>
 - Ganti `https://your-app-name.koyeb.app` dengan URL Koyeb Anda yang sebenarnya!
 - PORT harus 8000 (default Koyeb health check port)
 - Health check path: `/health` atau `/ping`
+- **JANGAN set NODE_ENV=production** (biarkan kosong agar Inngest berjalan dengan benar)
 
 Tambahkan juga environment variables lain yang dibutuhkan aplikasi Anda.
 
