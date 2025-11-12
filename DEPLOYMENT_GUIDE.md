@@ -22,7 +22,8 @@ Aplikasi Mastra memiliki issue dengan buildpack standard Koyeb karena bundler Ma
 - **Docker build context**: `.` (root directory)
 
 #### Environment Settings:
-- **Port**: `3000` (default untuk Mastra)
+- **Port**: `8000` (default Koyeb)
+- **Health check**: Path `/health` atau `/ping`, Port `8000`
 - **Instance type**: Minimal `small` (karena build membutuhkan RAM)
 
 ### 3. Environment Variables
@@ -31,7 +32,7 @@ Aplikasi Mastra memiliki issue dengan buildpack standard Koyeb karena bundler Ma
 
 ```
 NODE_ENV=production
-PORT=3000
+PORT=8000
 PUBLIC_URL=https://your-app-name.koyeb.app
 OPENAI_API_KEY=<your-key>
 TELEGRAM_BOT_TOKEN=<your-telegram-token>
@@ -39,7 +40,10 @@ FB_PAGE_ID=<your-facebook-page-id>
 FB_ACCESS_TOKEN=<your-facebook-access-token>
 ```
 
-**Catatan**: Ganti `https://your-app-name.koyeb.app` dengan URL Koyeb Anda yang sebenarnya!
+**Catatan Penting**:
+- Ganti `https://your-app-name.koyeb.app` dengan URL Koyeb Anda yang sebenarnya!
+- PORT harus 8000 (default Koyeb health check port)
+- Health check path: `/health` atau `/ping`
 
 Tambahkan juga environment variables lain yang dibutuhkan aplikasi Anda.
 

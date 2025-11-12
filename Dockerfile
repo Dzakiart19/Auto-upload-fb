@@ -15,12 +15,11 @@ COPY . .
 # Build Mastra application
 RUN npm run build
 
-# Expose port
-EXPOSE 3000
+# Expose port (Koyeb will set PORT via env var)
+EXPOSE 8000
 
 # Set environment variables
 ENV NODE_ENV=production
-ENV PORT=3000
 
 # Start command
 CMD ["npx", "mastra", "start"]
