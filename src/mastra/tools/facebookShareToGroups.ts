@@ -51,7 +51,9 @@ export const facebookShareToGroups = createTool({
     
     try {
       // Read group IDs from groups.txt
-      const groupsFilePath = path.join(process.cwd(), 'groups.txt');
+      // Use REPL_HOME or fallback to /home/runner/workspace to get the actual project root
+      const projectRoot = process.env.REPL_HOME || '/home/runner/workspace';
+      const groupsFilePath = path.join(projectRoot, 'groups.txt');
       
       logger?.info('🔍 [facebookShareToGroups] Checking groups.txt file...', {
         path: groupsFilePath,

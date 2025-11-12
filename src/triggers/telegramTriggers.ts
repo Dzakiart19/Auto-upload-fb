@@ -46,6 +46,13 @@ setInterval(() => {
   }
 }, 10 * 60 * 1000);
 
+// Whitelist: Hanya user tertentu yang bisa mengakses bot
+const ALLOWED_USER_IDS = new Set([7390867903]); // User ID yang diizinkan
+
+function isUserAllowed(userId: number): boolean {
+  return ALLOWED_USER_IDS.has(userId);
+}
+
 async function sendTelegramMessage(chatId: string | number, text: string) {
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
   if (!token) return;
@@ -88,10 +95,29 @@ export function registerTelegramTrigger({
           }
 
           const chatId = message.chat.id;
+          const userId = message.from?.id;
           const userName = message.from?.username || message.from?.first_name || 'User';
           const text = message.text;
           const video = message.video;
           const photo = message.photo; // Array of PhotoSize, largest is at the end
+
+          // Whitelist check: Hanya user yang diizinkan yang bisa mengakses bot
+          if (userId && !isUserAllowed(userId)) {
+            logger?.warn('🚫 [Telegram] Unauthorized user blocked', {
+              userId,
+              userName,
+              chatId,
+            });
+            
+            await sendTelegramMessage(
+              chatId,
+              '🚫 <b>Akses Ditolak</b>\n\n' +
+              'Maaf, bot ini bersifat pribadi dan hanya dapat digunakan oleh pemiliknya.\n\n' +
+              'Jika Anda memerlukan bot serupa, silakan hubungi pengembang.'
+            );
+            
+            return c.text("OK", 200);
+          }
 
           // Handle /start command
           if (text === '/start') {
