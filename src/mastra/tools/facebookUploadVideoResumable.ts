@@ -325,13 +325,8 @@ export const facebookUploadVideoResumable = createTool({
         success,
       });
       
-      // Clean up temporary file
-      try {
-        fs.unlinkSync(context.videoPath);
-        logger?.info('🗑️ [facebookUploadVideoResumable] Temporary file cleaned up');
-      } catch (cleanupError) {
-        logger?.warn('⚠️ [facebookUploadVideoResumable] Failed to clean up temporary file:', cleanupError);
-      }
+      // NOTE: File cleanup is handled by the caller (smart tool or workflow)
+      // to allow retry with different upload methods if needed
       
       return {
         success: true,

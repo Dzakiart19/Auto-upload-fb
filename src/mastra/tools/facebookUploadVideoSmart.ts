@@ -4,7 +4,7 @@ import * as fs from "fs";
 import { facebookUploadVideo } from "./facebookUploadVideo";
 import { facebookUploadVideoResumable } from "./facebookUploadVideoResumable";
 
-const FILE_SIZE_THRESHOLD = parseInt(process.env.FB_UPLOAD_SIZE_THRESHOLD || '20971520'); // 20MB default
+const FILE_SIZE_THRESHOLD = parseInt(process.env.FB_UPLOAD_SIZE_THRESHOLD || '5242880'); // 5MB default (lebih aman untuk koneksi lambat)
 
 export const facebookUploadVideoSmart = createTool({
   id: "facebook-upload-video-smart",
@@ -94,9 +94,23 @@ export const facebookUploadVideoSmart = createTool({
           runtimeContext: {} as any,
         });
         
-        // If simple upload fails with transient error 1363030, retry with resumable
-        if (!uploadResult.success && uploadResult.error?.includes('1363030')) {
-          logger?.warn('⚠️ [facebookUploadVideoSmart] Simple upload failed with transient error 1363030, retrying with resumable upload...');
+        // If simple upload fails with timeout or transient error, retry with resumable
+        const shouldRetryWithResumable = !uploadResult.success && (
+          uploadResult.error?.includes('1363030') || 
+          uploadResult.error?.includes('timeout') || 
+          uploadResult.error?.includes('Upload gagal setelah') ||
+          uploadResult.errorType === 'TIMEOUT_ERROR'
+        );
+        
+        if (shouldRetryWithResumable) {
+          logger?.warn('⚠️ [facebookUploadVideoSmart] Simple upload failed (timeout/transient error), retrying with resumable upload...');
+          logger?.warn(`⚠️ [facebookUploadVideoSmart] Error: ${uploadResult.error}`);
+          
+          // Check if video file still exists
+          if (!require('fs').existsSync(context.videoPath)) {
+            logger?.error('❌ [facebookUploadVideoSmart] Video file was deleted by simple upload, cannot retry');
+            return uploadResult; // Return original error
+          }
           
           uploadResult = await facebookUploadVideoResumable.execute({
             context: {
@@ -130,6 +144,17 @@ export const facebookUploadVideoSmart = createTool({
           mastra,
           runtimeContext: {} as any,
         });
+      }
+      
+      // Clean up temporary video file after upload attempt (success or fail)
+      try {
+        if (fs.existsSync(context.videoPath)) {
+          fs.unlinkSync(context.videoPath);
+          logger?.info('🗑️ [facebookUploadVideoSmart] Temporary video file cleaned up:', context.videoPath);
+        }
+      } catch (cleanupError: any) {
+        logger?.warn('⚠️ [facebookUploadVideoSmart] Failed to clean up temporary file:', cleanupError.message);
+        // Don't throw - cleanup failure is not critical
       }
       
       if (uploadResult.success) {

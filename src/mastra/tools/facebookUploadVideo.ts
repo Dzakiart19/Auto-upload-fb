@@ -162,7 +162,7 @@ export const facebookUploadVideo = createTool({
       // Retry configuration
       const MAX_RETRIES = 3;
       const BASE_DELAY = 2000; // 2 seconds base delay
-      const UPLOAD_TIMEOUT = 120000; // 120 seconds timeout
+      const UPLOAD_TIMEOUT = 300000; // 300 seconds (5 minutes) timeout - lebih toleran untuk koneksi lambat
       
       // Track last error for better error reporting
       let lastError: any = null;
@@ -299,13 +299,8 @@ export const facebookUploadVideo = createTool({
             attemptNumber: attempt,
           });
           
-          // Clean up temporary file
-          try {
-            fs.unlinkSync(context.videoPath);
-            logger?.info('🗑️ [facebookUploadVideo] Temporary file cleaned up');
-          } catch (cleanupError) {
-            logger?.warn('⚠️ [facebookUploadVideo] Failed to clean up temporary file:', cleanupError);
-          }
+          // NOTE: File cleanup is handled by the caller (smart tool or workflow)
+          // to allow retry with different upload methods if needed
           
           return {
             success: true,
