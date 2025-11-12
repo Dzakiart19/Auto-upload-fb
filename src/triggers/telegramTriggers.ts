@@ -10,7 +10,7 @@ if (!process.env.TELEGRAM_BOT_TOKEN) {
 }
 
 export type TriggerInfoTelegramOnNewMessage = {
-  type: "telegram/message" | "telegram/video" | "telegram/photo";
+  type: "telegram/message" | "telegram/video" | "telegram/photo" | "telegram/url";
   params: {
     userName: string;
     message?: string;
@@ -19,6 +19,7 @@ export type TriggerInfoTelegramOnNewMessage = {
     fileName?: string;
     fileSize?: number;
     mediaType?: 'video' | 'photo';
+    url?: string;
   };
   payload: any;
 };
@@ -179,6 +180,61 @@ export function registerTelegramTrigger({
               '✅ Foto diterima!\n\n📝 Sekarang, kirim <b>caption</b> untuk foto ini:'
             );
             return c.text("OK", 200);
+          }
+
+          // Handle URL detection (TikTok/Instagram)
+          if (text && !currentState) {
+            logger?.info('🔍 [Telegram] Checking for TikTok/Instagram URLs in text...', { text });
+            
+            const tiktokRegex = /tiktok\.com|vm\.tiktok\.com/i;
+            const instagramRegex = /instagram\.com\/(?:p|reel)/i;
+            
+            const hasTikTokUrl = tiktokRegex.test(text);
+            const hasInstagramUrl = instagramRegex.test(text);
+            
+            if (hasTikTokUrl || hasInstagramUrl) {
+              const platform = hasTikTokUrl ? 'TikTok' : 'Instagram';
+              logger?.info(`🎯 [Telegram] ${platform} URL detected in message`, {
+                chatId,
+                userName,
+                url: text,
+              });
+              
+              // Send acknowledgement
+              await sendTelegramMessage(
+                chatId,
+                `🔗 <b>${platform} URL Terdeteksi!</b>\n\n` +
+                `⏳ Sedang memproses video dari ${platform}...\n\n` +
+                `• Download video dari ${platform}\n` +
+                `• Extract metadata (judul, caption, hashtags)\n` +
+                `• Konversi video\n` +
+                `• Upload ke Facebook Page\n` +
+                `• Share ke grup-grup Facebook\n\n` +
+                `Mohon tunggu sebentar...`
+              );
+              
+              // Trigger workflow with URL
+              logger?.info('🚀 [Telegram] Triggering workflow with URL type', {
+                platform,
+                url: text,
+              });
+              
+              await handler(mastra, {
+                type: 'telegram/url',
+                params: {
+                  userName,
+                  chatId,
+                  url: text,
+                },
+                payload: {
+                  chatId,
+                  url: text,
+                  userName,
+                },
+              } as TriggerInfoTelegramOnNewMessage);
+              
+              return c.text("OK", 200);
+            }
           }
 
           // Handle conversation flow

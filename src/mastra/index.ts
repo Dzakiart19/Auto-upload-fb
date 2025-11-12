@@ -12,6 +12,8 @@ import { inngest, inngestServe } from "./inngest";
 import { facebookVideoWorkflow } from "./workflows/facebookVideoWorkflow";
 import { facebookVideoAgent } from "./agents/facebookVideoAgent";
 import { registerTelegramTrigger } from "../triggers/telegramTriggers";
+import { tiktokDownload } from "./tools/tiktokDownload";
+import { instagramDownload } from "./tools/instagramDownload";
 
 class ProductionPinoLogger extends MastraLogger {
   protected logger: pino.Logger;
@@ -64,7 +66,10 @@ export const mastra = new Mastra({
     allTools: new MCPServer({
       name: "allTools",
       version: "1.0.0",
-      tools: {},
+      tools: {
+        tiktokDownload,
+        instagramDownload,
+      },
     }),
   },
   bundler: {

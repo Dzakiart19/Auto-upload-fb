@@ -10,6 +10,8 @@ import { facebookShareToGroups } from "../tools/facebookShareToGroups";
 import { telegramSendMessage } from "../tools/telegramSendMessage";
 import { generateEngagingCaption } from "../tools/generateEngagingCaption";
 import { generateTrendingHashtags } from "../tools/generateTrendingHashtags";
+import { tiktokDownload } from "../tools/tiktokDownload";
+import { instagramDownload } from "../tools/instagramDownload";
 import * as fs from "fs";
 
 // Check if AI should be used or fallback to direct tool calls
@@ -163,8 +165,19 @@ const processMediaDirectly = async (inputData: any, mastra: any) => {
     logger?.info("✅ [Step 0] Caption ready (simple user input)", {
       captionLength: optimizedCaption.length,
     });
-    // Step 1: Download media from Telegram (branch by media type)
-    if (mediaType === 'photo') {
+    
+    // Step 1: Get media file (either from Telegram or from local URL download)
+    if (inputData.localFilePath) {
+      // URL flow: Use already-downloaded file
+      logger?.info("📂 [Step 1] Using pre-downloaded file from URL...", {
+        filePath: inputData.localFilePath,
+      });
+      downloadSuccess = true;
+      originalMediaPath = inputData.localFilePath;
+      logger?.info("✅ [Step 1] Using local file:", originalMediaPath);
+      
+    } else if (mediaType === 'photo') {
+      // Manual upload flow: Download photo from Telegram
       logger?.info("📥 [Step 1] Downloading photo from Telegram...");
       const downloadResult = await telegramDownloadPhoto.execute({
         context: {
@@ -184,7 +197,7 @@ const processMediaDirectly = async (inputData: any, mastra: any) => {
       logger?.info("✅ [Step 1] Photo downloaded successfully:", originalMediaPath);
       
     } else {
-      // Video download (existing flow)
+      // Manual upload flow: Download video from Telegram
       logger?.info("📥 [Step 1/5] Downloading video from Telegram...");
       const downloadResult = await telegramDownloadVideo.execute({
         context: {
@@ -438,11 +451,12 @@ const processMediaUpload = createStep({
   inputSchema: z.object({
     threadId: z.string().describe("Thread ID untuk memory management"),
     chatId: z.union([z.string(), z.number()]).describe("Telegram chat ID pengirim media"),
-    fileId: z.string().describe("Telegram file_id dari media (video atau photo)"),
+    fileId: z.string().optional().describe("Telegram file_id dari media (video atau photo) - optional for URL flow"),
     mediaType: z.enum(['video', 'photo']).default('video').describe("Type of media: video or photo"),
-    title: z.string().describe("Judul/caption untuk media"),
-    description: z.string().describe("Deskripsi/caption media dengan hashtags"),
+    title: z.string().optional().describe("Judul/caption untuk media - optional for URL flow"),
+    description: z.string().optional().describe("Deskripsi/caption media dengan hashtags - optional for URL flow"),
     userName: z.string().optional().describe("Username pengirim"),
+    localFilePath: z.string().optional().describe("Local file path from URL download - for URL flow"),
   }),
   
   outputSchema: z.object({
@@ -592,17 +606,201 @@ Berikan saya ringkasan hasil akhir dari semua langkah tersebut.
   },
 });
 
+const prepareMediaData = createStep({
+  id: "prepare-media-data",
+  description: "Route workflow: if URL provided, download from TikTok/Instagram; otherwise pass through manual upload data",
+  
+  inputSchema: z.object({
+    threadId: z.string().describe("Thread ID untuk memory management"),
+    chatId: z.union([z.string(), z.number()]).describe("Telegram chat ID"),
+    fileId: z.string().optional().describe("Telegram file_id - for manual upload"),
+    mediaType: z.enum(['video', 'photo']).default('video'),
+    title: z.string().optional().describe("Title - for manual upload"),
+    description: z.string().optional().describe("Description - for manual upload"),
+    userName: z.string().optional(),
+    url: z.string().optional().describe("TikTok/Instagram URL - for URL flow"),
+  }),
+  
+  outputSchema: z.object({
+    threadId: z.string(),
+    chatId: z.union([z.string(), z.number()]),
+    fileId: z.string().optional(),
+    mediaType: z.enum(['video', 'photo']),
+    title: z.string().optional(),
+    description: z.string().optional(),
+    userName: z.string().optional(),
+    localFilePath: z.string().optional(),
+    isUrlFlow: z.boolean(),
+  }),
+  
+  execute: async ({ inputData, mastra }) => {
+    const logger = mastra?.getLogger();
+    
+    logger?.info('🔀 [prepareMediaData] Routing workflow...', {
+      hasUrl: !!inputData.url,
+      hasFileId: !!inputData.fileId,
+    });
+    
+    // Check if this is URL flow or manual upload flow
+    if (inputData.url) {
+      logger?.info('🔗 [prepareMediaData] URL flow detected, downloading from URL...');
+      
+      try {
+        // Detect platform from URL
+        const tiktokRegex = /tiktok\.com|vm\.tiktok\.com/i;
+        const instagramRegex = /instagram\.com\/(?:p|reel)/i;
+        
+        const isTikTok = tiktokRegex.test(inputData.url);
+        const isInstagram = instagramRegex.test(inputData.url);
+        
+        if (!isTikTok && !isInstagram) {
+          logger?.error('❌ [prepareMediaData] URL is not TikTok or Instagram', {
+            url: inputData.url,
+          });
+          
+          await telegramSendMessage.execute({
+            context: {
+              chatId: inputData.chatId,
+              message: '❌ *URL tidak valid*\n\nURL harus dari TikTok atau Instagram (post/reel).',
+            },
+            mastra,
+            runtimeContext: {} as any
+          });
+          
+          return {
+            threadId: inputData.threadId,
+            chatId: inputData.chatId,
+            mediaType: 'video' as const,
+            userName: inputData.userName,
+            isUrlFlow: true,
+          };
+        }
+        
+        logger?.info(`📱 [prepareMediaData] Platform detected: ${isTikTok ? 'TikTok' : 'Instagram'}`);
+        
+        // Call appropriate download tool
+        let downloadResult;
+        
+        if (isTikTok) {
+          logger?.info('📥 [prepareMediaData] Downloading from TikTok...');
+          downloadResult = await tiktokDownload.execute({
+            context: { url: inputData.url },
+            mastra,
+            runtimeContext: {} as any
+          });
+        } else {
+          logger?.info('📥 [prepareMediaData] Downloading from Instagram...');
+          downloadResult = await instagramDownload.execute({
+            context: { url: inputData.url },
+            mastra,
+            runtimeContext: {} as any
+          });
+        }
+        
+        if (!downloadResult.success || !downloadResult.filePath) {
+          logger?.error('❌ [prepareMediaData] Download failed', {
+            error: downloadResult.error,
+            platform: isTikTok ? 'TikTok' : 'Instagram',
+          });
+          
+          const platform = isTikTok ? 'TikTok' : 'Instagram';
+          await telegramSendMessage.execute({
+            context: {
+              chatId: inputData.chatId,
+              message: `❌ *Gagal download video dari ${platform}*\n\n${downloadResult.error || 'Unknown error'}\n\nSilakan coba lagi atau gunakan URL lain.`,
+            },
+            mastra,
+            runtimeContext: {} as any
+          });
+          
+          return {
+            threadId: inputData.threadId,
+            chatId: inputData.chatId,
+            mediaType: 'video' as const,
+            userName: inputData.userName,
+            isUrlFlow: true,
+          };
+        }
+        
+        logger?.info('✅ [prepareMediaData] Download successful!', {
+          filePath: downloadResult.filePath,
+          fileSize: downloadResult.fileSize,
+          title: downloadResult.title?.substring(0, 50),
+          platform: isTikTok ? 'TikTok' : 'Instagram',
+        });
+        
+        // Merge downloaded data with metadata
+        const mergedTitle = downloadResult.title || inputData.title || 'Video';
+        const mergedDescription = [
+          downloadResult.caption || '',
+          inputData.description || '',
+          downloadResult.hashtags || '',
+        ].filter(Boolean).join('\n\n').trim() || 'Video dari TikTok/Instagram';
+        
+        return {
+          threadId: inputData.threadId,
+          chatId: inputData.chatId,
+          mediaType: 'video' as const,
+          title: mergedTitle,
+          description: mergedDescription,
+          userName: inputData.userName,
+          localFilePath: downloadResult.filePath,
+          isUrlFlow: true,
+        };
+        
+      } catch (error: any) {
+        logger?.error('❌ [prepareMediaData] Unexpected error:', error);
+        
+        await telegramSendMessage.execute({
+          context: {
+            chatId: inputData.chatId,
+            message: `❌ *Terjadi error saat download video*\n\n${error.message}\n\nSilakan coba lagi.`,
+          },
+          mastra,
+          runtimeContext: {} as any
+        }).catch(err => {
+          logger?.error('❌ Failed to send error notification:', err);
+        });
+        
+        return {
+          threadId: inputData.threadId,
+          chatId: inputData.chatId,
+          mediaType: 'video' as const,
+          userName: inputData.userName,
+          isUrlFlow: true,
+        };
+      }
+      
+    } else {
+      logger?.info('📤 [prepareMediaData] Manual upload flow detected, passing through...');
+      
+      // Manual upload flow: pass through as-is
+      return {
+        threadId: inputData.threadId,
+        chatId: inputData.chatId,
+        fileId: inputData.fileId,
+        mediaType: inputData.mediaType || 'video' as const,
+        title: inputData.title,
+        description: inputData.description,
+        userName: inputData.userName,
+        isUrlFlow: false,
+      };
+    }
+  },
+});
+
 export const facebookVideoWorkflow = createWorkflow({
   id: "facebook-video-workflow", // Keep same ID for backwards compatibility
   
   inputSchema: z.object({
     threadId: z.string().describe("Thread ID untuk memory management"),
     chatId: z.union([z.string(), z.number()]).describe("Telegram chat ID"),
-    fileId: z.string().describe("Telegram file_id dari media (video atau photo)"),
+    fileId: z.string().optional().describe("Telegram file_id dari media (video atau photo) - optional for URL flow"),
     mediaType: z.enum(['video', 'photo']).default('video').describe("Type of media: video or photo"),
-    title: z.string().describe("Judul/caption untuk media"),
-    description: z.string().describe("Deskripsi/caption media dengan hashtags"),
+    title: z.string().optional().describe("Judul/caption untuk media - optional for URL flow"),
+    description: z.string().optional().describe("Deskripsi/caption media dengan hashtags - optional for URL flow"),
     userName: z.string().optional().describe("Username pengirim"),
+    url: z.string().optional().describe("TikTok/Instagram URL untuk auto-download"),
   }) as any,
   
   outputSchema: z.object({
@@ -616,5 +814,6 @@ export const facebookVideoWorkflow = createWorkflow({
     message: z.string(),
   }),
 })
+  .then(prepareMediaData as any)
   .then(processMediaUpload as any)
   .commit();
