@@ -127,15 +127,22 @@ export const mastra = new Mastra({
         createHandler: async () => {
           return async (c) => {
             const getPublicUrl = () => {
-              // Priority 1: Custom PUBLIC_URL (untuk Termux dengan ngrok/serveo)
+              // Priority 1: Custom PUBLIC_URL
               if (process.env.PUBLIC_URL) {
                 return process.env.PUBLIC_URL.trim();
               }
-              // Priority 2: Replit environment
+              // Priority 2: Koyeb environment
+              if (process.env.KOYEB_PUBLIC_DOMAIN) {
+                return `https://${process.env.KOYEB_PUBLIC_DOMAIN}`;
+              }
+              if (process.env.KOYEB_DOMAIN) {
+                return `https://${process.env.KOYEB_DOMAIN}`;
+              }
+              // Priority 3: Replit environment
               if (process.env.REPLIT_DEV_DOMAIN) {
                 return `https://${process.env.REPLIT_DEV_DOMAIN}`;
               }
-              // Priority 3: Replit legacy
+              // Priority 4: Replit legacy
               const replSlug = process.env.REPL_SLUG;
               const replOwner = process.env.REPL_OWNER;
               if (replSlug && replOwner) {
@@ -169,15 +176,22 @@ export const mastra = new Mastra({
         createHandler: async () => {
           return async (c) => {
             const getPublicUrl = () => {
-              // Priority 1: Custom PUBLIC_URL (untuk Termux dengan ngrok/serveo)
+              // Priority 1: Custom PUBLIC_URL
               if (process.env.PUBLIC_URL) {
                 return process.env.PUBLIC_URL.trim();
               }
-              // Priority 2: Replit environment
+              // Priority 2: Koyeb environment
+              if (process.env.KOYEB_PUBLIC_DOMAIN) {
+                return `https://${process.env.KOYEB_PUBLIC_DOMAIN}`;
+              }
+              if (process.env.KOYEB_DOMAIN) {
+                return `https://${process.env.KOYEB_DOMAIN}`;
+              }
+              // Priority 3: Replit environment
               if (process.env.REPLIT_DEV_DOMAIN) {
                 return `https://${process.env.REPLIT_DEV_DOMAIN}`;
               }
-              // Priority 3: Replit legacy
+              // Priority 4: Replit legacy
               const replSlug = process.env.REPL_SLUG;
               const replOwner = process.env.REPL_OWNER;
               if (replSlug && replOwner) {
@@ -385,17 +399,25 @@ if (Object.keys(mastra.getAgents()).length > 1) {
 
 // Display public URL on startup with proper URL detection
 const getPublicUrl = () => {
-  // Priority 1: Custom PUBLIC_URL (untuk Termux dengan ngrok/serveo)
+  // Priority 1: Custom PUBLIC_URL (untuk Koyeb, ngrok, serveo, dll)
   if (process.env.PUBLIC_URL) {
     return process.env.PUBLIC_URL.trim();
   }
   
-  // Priority 2: Use REPLIT_DEV_DOMAIN if available (most reliable)
+  // Priority 2: Koyeb environment
+  if (process.env.KOYEB_PUBLIC_DOMAIN) {
+    return `https://${process.env.KOYEB_PUBLIC_DOMAIN}`;
+  }
+  if (process.env.KOYEB_DOMAIN) {
+    return `https://${process.env.KOYEB_DOMAIN}`;
+  }
+  
+  // Priority 3: Use REPLIT_DEV_DOMAIN if available (most reliable)
   if (process.env.REPLIT_DEV_DOMAIN) {
     return `https://${process.env.REPLIT_DEV_DOMAIN}`;
   }
   
-  // Priority 3: Build from REPL_SLUG and REPL_OWNER
+  // Priority 4: Build from REPL_SLUG and REPL_OWNER
   const replSlug = process.env.REPL_SLUG;
   const replOwner = process.env.REPL_OWNER;
   if (replSlug && replOwner) {

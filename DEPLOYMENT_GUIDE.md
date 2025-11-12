@@ -27,15 +27,21 @@ Aplikasi Mastra memiliki issue dengan buildpack standard Koyeb karena bundler Ma
 
 ### 3. Environment Variables
 
-Tambahkan environment variables yang diperlukan:
+**PENTING**: Tambahkan environment variables berikut di Koyeb:
 
 ```
 NODE_ENV=production
 PORT=3000
+PUBLIC_URL=https://your-app-name.koyeb.app
 OPENAI_API_KEY=<your-key>
+TELEGRAM_BOT_TOKEN=<your-telegram-token>
+FB_PAGE_ID=<your-facebook-page-id>
+FB_ACCESS_TOKEN=<your-facebook-access-token>
 ```
 
-Tambahkan juga environment variables lain yang dibutuhkan aplikasi Anda (database, API keys, dll).
+**Catatan**: Ganti `https://your-app-name.koyeb.app` dengan URL Koyeb Anda yang sebenarnya!
+
+Tambahkan juga environment variables lain yang dibutuhkan aplikasi Anda.
 
 ### 4. Advanced Settings (Opsional)
 
