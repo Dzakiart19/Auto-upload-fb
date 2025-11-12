@@ -52,12 +52,18 @@ export const tiktokDownload = createTool({
         type: videoData.type,
       });
       
-      // Check if this is an image carousel (not a video)
+      // Check if this is an image carousel (slideshow with music)
       if (videoData.type === 'image') {
-        logger?.warn('⚠️ [tiktokDownload] TikTok post is an image carousel, not a video');
+        logger?.warn('⚠️ [tiktokDownload] TikTok post is an image carousel/slideshow');
         return {
           success: false,
-          error: 'TikTok post ini adalah gambar/slideshow, bukan video. Bot hanya support download video TikTok. Silakan gunakan URL video TikTok atau upload manual.',
+          error: '⚠️ *Video Slide Foto/Slideshow Belum Support*\n\n' +
+                 'TikTok post ini adalah slideshow gambar dengan musik, bukan video biasa.\n\n' +
+                 '📌 *Solusi sementara:*\n' +
+                 '1. Download video slide foto ini manual dari TikTok\n' +
+                 '2. Upload langsung ke bot sebagai video\n' +
+                 '3. Atau gunakan URL TikTok video biasa (bukan slideshow)\n\n' +
+                 'Support untuk slideshow/carousel akan ditambahkan di update mendatang! 🚀',
         };
       }
       

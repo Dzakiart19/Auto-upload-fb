@@ -143,14 +143,16 @@ const processMediaDirectly = async (inputData: any, mastra: any) => {
       // URL flow: Use metadata from TikTok/Instagram directly (already contains caption + hashtags from source)
       logger?.info("🔗 [Step 0] URL flow - using metadata from source (TikTok/Instagram) directly");
       
-      // Description from prepareMediaData already contains: caption + original description + hashtags
-      // Use it as-is without any modifications or additional hashtag generation
-      optimizedCaption = safeDescription ? `${safeTitle}\n\n${safeDescription}` : safeTitle;
+      // Description from prepareMediaData already contains the full caption + hashtags from TikTok/Instagram
+      // FIX: Use ONLY description to avoid duplication (title and description from TikTok are often identical)
+      // Only fallback to title if description is empty
+      optimizedCaption = safeDescription || safeTitle;
       optimizedHashtags = ''; // Hashtags already included in description from source
       
-      logger?.info("✅ [Step 0] Using source metadata directly", {
+      logger?.info("✅ [Step 0] Using source metadata directly (no duplication)", {
         captionLength: optimizedCaption.length,
         source: "TikTok/Instagram",
+        usedField: safeDescription ? 'description' : 'title',
       });
       
     } else {
