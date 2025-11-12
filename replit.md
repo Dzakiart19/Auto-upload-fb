@@ -61,28 +61,40 @@ https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://fc29960b-e4e3-4b9b-8c
 - URL `.replit.dev` adalah URL gratis yang aktif saat aplikasi running
 - URL `.replit.app` memerlukan deployment berbayar (tidak diperlukan untuk bot ini)
 
-### Fix Terbaru (Nov 11, 2025):
+### Fix Terbaru (Nov 12, 2025):
 
-#### ✅ **Fix Upload Video Error 390 - Video Invalid/Corrupt**
+#### ✅ **Fix Upload Video Error 390 - Video Invalid/Corrupt (COMPLETE)**
 
 **Masalah:**
-- Upload video gagal dengan error 390: "File video tidak valid atau corrupt"
+- Upload video gagal dengan error 390 subcode 1363030: "File video tidak valid atau corrupt"
 - Video berhasil di-download dari Telegram tapi gagal di-upload ke Facebook
 - Format video dari Telegram tidak selalu MP4, tapi code memaksa ekstensi .mp4
+- Implementasi resumable upload tidak mengikuti protokol Facebook dengan benar
 
-**Solusi:**
-1. **Preservasi Format Asli**: Telegram download tool sekarang mendeteksi dan mempertahankan ekstensi file asli dari Telegram (bukan memaksa .mp4)
-2. **Resumable Upload API**: Beralih dari simple upload ke Facebook Resumable Upload API yang lebih reliable
-   - 3-phase upload: Initialize → Transfer → Finalize
-   - Lebih stabil untuk file besar dan berbagai format
-   - Better error handling dan logging
-3. **Improved Validation**: Tambahan validasi ukuran file dan warning untuk file yang terlalu kecil
+**Solusi Final:**
+1. **Preservasi Format Asli**: Telegram download tool mendeteksi dan mempertahankan ekstensi file asli dari Telegram
+2. **Protokol Resumable Upload yang Benar**: 
+   - Menggunakan offset dari Facebook's `start` phase (bukan hardcoded 5MB)
+   - Chunk size dihitung dari `end_offset - start_offset` yang dikembalikan Facebook
+   - Setiap chunk di-upload sesuai offset yang diminta Facebook
+   - File descriptor dibuka sekali untuk seluruh upload (efisien)
+3. **Validasi & Error Handling**:
+   - Validasi chunk size > 0 dan tidak melebihi sisa file
+   - Deteksi infinite loop (jika offset tidak bergerak)
+   - Clamp end_offset ke file size untuk mencegah buffer overflow
+   - try-finally untuk memastikan file descriptor selalu ditutup
+4. **Logging Komprehensif**: Progress upload, chunk size, dan offset untuk debugging
 
 **Perubahan:**
 - `telegramDownloadVideo`: Auto-detect ekstensi dari Telegram file path
-- `facebookUploadVideoResumable`: Digunakan sebagai default upload method
+- `facebookUploadVideoResumable`: Implementasi penuh protokol Facebook chunked upload
+  - Gunakan `initialStartOffset` dan `initialEndOffset` dari start phase
+  - Loop upload mengikuti offset yang dikembalikan Facebook
+  - Validasi di setiap iterasi untuk mencegah error
 - Agent & Workflow: Updated untuk menggunakan resumable upload
 - Fallback mode: Fixed untuk tidak memaksa ekstensi .mp4
+
+**Status**: ✅ SELESAI - Siap untuk test dengan video besar (>100MB)
 
 #### ✅ **Error "#100 The global id is not allowed" sudah diperbaiki!**
 
