@@ -211,6 +211,20 @@ export const mastra = new Mastra({
           };
         },
       },
+      {
+        path: "/health",
+        method: "GET",
+        createHandler: async () => {
+          return async (c) => {
+            return c.json({
+              status: "healthy",
+              uptime: process.uptime(),
+              timestamp: new Date().toISOString(),
+              service: "telegram-facebook-bot"
+            });
+          };
+        },
+      },
       // ======================================================================
       // Inngest Integration Endpoint
       // ======================================================================
