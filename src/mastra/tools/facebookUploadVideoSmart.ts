@@ -4,7 +4,9 @@ import * as fs from "fs";
 import { facebookUploadVideo } from "./facebookUploadVideo";
 import { facebookUploadVideoResumable } from "./facebookUploadVideoResumable";
 
-const FILE_SIZE_THRESHOLD = parseInt(process.env.FB_UPLOAD_SIZE_THRESHOLD || '5242880'); // 5MB default (lebih aman untuk koneksi lambat)
+// ALWAYS use resumable upload due to Replit->Facebook connection issues
+// Simple upload consistently fails with timeout error 1363030
+const FILE_SIZE_THRESHOLD = parseInt(process.env.FB_UPLOAD_SIZE_THRESHOLD || '0'); // 0 = always use resumable
 
 export const facebookUploadVideoSmart = createTool({
   id: "facebook-upload-video-smart",
