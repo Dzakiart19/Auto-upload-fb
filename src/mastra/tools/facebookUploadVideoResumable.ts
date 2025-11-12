@@ -136,6 +136,12 @@ export const facebookUploadVideoResumable = createTool({
       // Upload in chunks following Facebook's offset pattern
       // Open file once for the entire upload
       const fd = fs.openSync(context.videoPath, 'r');
+      const tmpChunkDir = '/tmp/fb_chunks';
+      
+      // Create temp directory for chunks
+      if (!fs.existsSync(tmpChunkDir)) {
+        fs.mkdirSync(tmpChunkDir, { recursive: true });
+      }
       
       try {
         // Use offsets from the start phase, not hardcoded values
@@ -179,44 +185,84 @@ export const facebookUploadVideoResumable = createTool({
           const buffer = Buffer.alloc(chunkSize);
           fs.readSync(fd, buffer, 0, chunkSize, currentStartOffset);
           
-          // Create FormData for this chunk
-          const form = new FormData();
-          form.append('upload_phase', 'transfer');
-          form.append('start_offset', currentStartOffset.toString());
-          form.append('upload_session_id', uploadSessionId);
-          form.append('video_file_chunk', buffer, {
-            filename: `video.${fileExtension}`,
-            contentType: contentType,
+          // Write chunk to temporary file (more reliable for form-data library)
+          const chunkFilePath = `${tmpChunkDir}/chunk_${Date.now()}_${chunkNumber}.${fileExtension}`;
+          fs.writeFileSync(chunkFilePath, buffer);
+          
+          logger?.info(`💾 [facebookUploadVideoResumable] Chunk written to temp file:`, {
+            path: chunkFilePath,
+            size: fs.statSync(chunkFilePath).size,
           });
           
-          const uploadUrl = `https://graph-video.facebook.com/v19.0/${pageId}/videos?access_token=${encodeURIComponent(pageAccessToken)}`;
-          
-          const uploadResponse = await fetch(uploadUrl, {
-            method: 'POST',
-            body: form as any,
-            headers: form.getHeaders(),
-          });
-          
-          const uploadResult = await uploadResponse.json();
-          
-          if (!uploadResponse.ok || uploadResult.error) {
-            logger?.error('❌ [facebookUploadVideoResumable] Chunk upload failed:', uploadResult);
-            throw new Error(`Upload gagal pada chunk ${chunkNumber}: ${uploadResult.error?.message || 'Unknown error'}`);
+          try {
+            // Create FormData for this chunk using file stream (more reliable than buffer)
+            const form = new FormData();
+            form.append('upload_phase', 'transfer');
+            form.append('start_offset', currentStartOffset.toString());
+            form.append('upload_session_id', uploadSessionId);
+            form.append('video_file_chunk', fs.createReadStream(chunkFilePath), {
+              filename: `chunk.${fileExtension}`,
+              contentType: contentType,
+            });
+            
+            const uploadUrl = `https://graph-video.facebook.com/v19.0/${pageId}/videos?access_token=${encodeURIComponent(pageAccessToken)}`;
+            
+            logger?.info(`🔼 [facebookUploadVideoResumable] Sending chunk ${chunkNumber} to Facebook...`, {
+              url: uploadUrl.split('?')[0],
+              contentType: contentType,
+              chunkSize: chunkSize,
+            });
+            
+            const uploadResponse = await fetch(uploadUrl, {
+              method: 'POST',
+              body: form as any,
+              headers: form.getHeaders(),
+            });
+            
+            const uploadResult = await uploadResponse.json();
+            
+            logger?.info(`📩 [facebookUploadVideoResumable] Facebook response for chunk ${chunkNumber}:`, {
+              status: uploadResponse.status,
+              ok: uploadResponse.ok,
+              result: uploadResult,
+            });
+            
+            if (!uploadResponse.ok || uploadResult.error) {
+              logger?.error('❌ [facebookUploadVideoResumable] Chunk upload failed:', {
+                status: uploadResponse.status,
+                statusText: uploadResponse.statusText,
+                error: uploadResult.error,
+                errorMessage: uploadResult.error?.message,
+                errorCode: uploadResult.error?.code,
+                errorSubcode: uploadResult.error?.error_subcode,
+                fullResponse: uploadResult,
+              });
+              throw new Error(`Upload gagal pada chunk ${chunkNumber}: ${uploadResult.error?.message || 'Unknown error'}`);
+            }
+            
+            // Facebook returns the next offset to upload
+            const nextStartOffset = parseInt(uploadResult.start_offset || '0');
+            const nextEndOffset = parseInt(uploadResult.end_offset || fileSize.toString());
+            
+            logger?.info(`✅ [facebookUploadVideoResumable] Chunk ${chunkNumber} uploaded`, {
+              nextStartOffset,
+              nextEndOffset,
+              remaining: fileSize - nextStartOffset,
+            });
+            
+            // Update offsets for next iteration, clamp to file size
+            currentStartOffset = nextStartOffset;
+            currentEndOffset = Math.min(nextEndOffset, fileSize);
+            
+          } finally {
+            // Clean up temporary chunk file
+            try {
+              fs.unlinkSync(chunkFilePath);
+              logger?.info(`🗑️ [facebookUploadVideoResumable] Temp chunk file deleted: ${chunkFilePath}`);
+            } catch (cleanupError) {
+              logger?.warn(`⚠️ [facebookUploadVideoResumable] Failed to delete temp chunk: ${cleanupError}`);
+            }
           }
-          
-          // Facebook returns the next offset to upload
-          const nextStartOffset = parseInt(uploadResult.start_offset || '0');
-          const nextEndOffset = parseInt(uploadResult.end_offset || fileSize.toString());
-          
-          logger?.info(`✅ [facebookUploadVideoResumable] Chunk ${chunkNumber} uploaded`, {
-            nextStartOffset,
-            nextEndOffset,
-            remaining: fileSize - nextStartOffset,
-          });
-          
-          // Update offsets for next iteration, clamp to file size
-          currentStartOffset = nextStartOffset;
-          currentEndOffset = Math.min(nextEndOffset, fileSize);
           
           // If start equals or exceeds end, we're done
           if (currentStartOffset >= currentEndOffset || currentStartOffset >= fileSize) {
@@ -230,6 +276,20 @@ export const facebookUploadVideoResumable = createTool({
         // Always close the file descriptor
         fs.closeSync(fd);
         logger?.info('🗑️ [facebookUploadVideoResumable] File descriptor closed');
+        
+        // Clean up temp chunk directory
+        try {
+          if (fs.existsSync(tmpChunkDir)) {
+            const files = fs.readdirSync(tmpChunkDir);
+            for (const file of files) {
+              fs.unlinkSync(`${tmpChunkDir}/${file}`);
+            }
+            fs.rmdirSync(tmpChunkDir);
+            logger?.info('🗑️ [facebookUploadVideoResumable] Temp chunk directory cleaned');
+          }
+        } catch (cleanupError) {
+          logger?.warn('⚠️ [facebookUploadVideoResumable] Failed to clean temp directory:', cleanupError);
+        }
       }
       
       // Step 3: Finalize upload with title and description
