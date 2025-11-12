@@ -24,7 +24,7 @@ export const telegramSendMessage = createTool({
       messageLength: context.message.length,
     });
     
-    const token = process.env.TELEGRAM_BOT_TOKEN;
+    const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
     if (!token) {
       logger?.error('❌ [telegramSendMessage] TELEGRAM_BOT_TOKEN not found');
       return {
@@ -35,6 +35,7 @@ export const telegramSendMessage = createTool({
     
     try {
       logger?.info('📝 [telegramSendMessage] Sending message to Telegram...');
+      logger?.info('🔑 [telegramSendMessage] Token length:', token.length);
       
       const sendUrl = `https://api.telegram.org/bot${token}/sendMessage`;
       

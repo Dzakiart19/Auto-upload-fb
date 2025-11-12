@@ -31,7 +31,7 @@ const userStates = new Map<string | number, {
 }>();
 
 async function sendTelegramMessage(chatId: string | number, text: string) {
-  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
   if (!token) return;
   
   await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {

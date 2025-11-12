@@ -371,12 +371,14 @@ logger?.info(`   https://api.telegram.org/bot<TOKEN>/getWebhookInfo`);
 logger?.info("🚀 ========================================");
 
 // Auto-setup webhook if TELEGRAM_BOT_TOKEN is available
-const telegramToken = process.env.TELEGRAM_BOT_TOKEN;
+const telegramToken = process.env.TELEGRAM_BOT_TOKEN?.trim();
 if (telegramToken) {
   const webhookUrl = `${publicUrl}/webhooks/telegram/action`;
   const setWebhookUrl = `https://api.telegram.org/bot${telegramToken}/setWebhook?url=${webhookUrl}`;
   
   logger?.info("🔄 Auto-setting Telegram webhook...");
+  logger?.info(`   Webhook URL: ${webhookUrl}`);
+  logger?.info(`   Bot Token Length: ${telegramToken.length} characters`);
   
   fetch(setWebhookUrl)
     .then(res => res.json())

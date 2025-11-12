@@ -23,7 +23,7 @@ export const telegramDownloadVideo = createTool({
     const logger = mastra?.getLogger();
     logger?.info('🔧 [telegramDownloadVideo] Starting execution with params:', context);
     
-    const token = process.env.TELEGRAM_BOT_TOKEN;
+    const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
     if (!token) {
       logger?.error('❌ [telegramDownloadVideo] TELEGRAM_BOT_TOKEN not found');
       return {
