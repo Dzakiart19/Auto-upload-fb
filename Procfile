@@ -1,1 +1,1 @@
-web: mastra dev
+web: node .mastra/output/index.mjs
