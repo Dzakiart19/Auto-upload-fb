@@ -186,18 +186,25 @@ export function registerTelegramTrigger({
           if (text && !currentState) {
             logger?.info('🔍 [Telegram] Checking for TikTok/Instagram URLs in text...', { text });
             
-            const tiktokRegex = /tiktok\.com|vm\.tiktok\.com/i;
-            const instagramRegex = /instagram\.com\/(?:p|reel)/i;
+            // Extract actual URL from message (handles cases like "Check this: https://tiktok.com/...")
+            const tiktokRegex = /(https?:\/\/)?(www\.)?(tiktok\.com|vm\.tiktok\.com)\/[^\s]+/i;
+            const instagramRegex = /(https?:\/\/)?(www\.)?instagram\.com\/(p|reel)\/[^\s]+/i;
             
-            const hasTikTokUrl = tiktokRegex.test(text);
-            const hasInstagramUrl = instagramRegex.test(text);
+            const tiktokMatch = text.match(tiktokRegex);
+            const instagramMatch = text.match(instagramRegex);
             
-            if (hasTikTokUrl || hasInstagramUrl) {
-              const platform = hasTikTokUrl ? 'TikTok' : 'Instagram';
+            if (tiktokMatch || instagramMatch) {
+              const extractedUrl = (tiktokMatch || instagramMatch)![0];
+              const platform = tiktokMatch ? 'TikTok' : 'Instagram';
+              
+              // Ensure URL has protocol
+              const cleanUrl = extractedUrl.startsWith('http') ? extractedUrl : `https://${extractedUrl}`;
+              
               logger?.info(`🎯 [Telegram] ${platform} URL detected in message`, {
                 chatId,
                 userName,
-                url: text,
+                originalText: text,
+                extractedUrl: cleanUrl,
               });
               
               // Send acknowledgement
@@ -213,10 +220,10 @@ export function registerTelegramTrigger({
                 `Mohon tunggu sebentar...`
               );
               
-              // Trigger workflow with URL
+              // Trigger workflow with clean URL
               logger?.info('🚀 [Telegram] Triggering workflow with URL type', {
                 platform,
-                url: text,
+                url: cleanUrl,
               });
               
               await handler(mastra, {
@@ -224,11 +231,11 @@ export function registerTelegramTrigger({
                 params: {
                   userName,
                   chatId,
-                  url: text,
+                  url: cleanUrl,
                 },
                 payload: {
                   chatId,
-                  url: text,
+                  url: cleanUrl,
                   userName,
                 },
               } as TriggerInfoTelegramOnNewMessage);

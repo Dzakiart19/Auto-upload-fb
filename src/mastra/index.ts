@@ -334,6 +334,7 @@ export const mastra = new Mastra({
               title: triggerInfo.payload.title,
               description: triggerInfo.payload.description,
               userName: triggerInfo.payload.userName,
+              url: triggerInfo.payload.url,
             },
           });
         }
