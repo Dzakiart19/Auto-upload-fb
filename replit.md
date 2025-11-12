@@ -139,17 +139,26 @@ Preferred communication style: Simple, everyday language.
     - **Photo Download**: `telegramDownloadPhoto` - Downloads photos to `/tmp/telegram_photos/`
     - **Format Preservation**: Maintains original file extensions from Telegram
     - **Size Validation**: Checks file integrity and minimum size requirements
-- **Instagram & TikTok Download Integration** (Updated November 12, 2025):
+- **Instagram & TikTok Auto-Extract & Upload** (Updated November 12, 2025):
+    - **Auto-Detection**: Bot automatically detects TikTok/Instagram URLs in Telegram messages
+    - **Zero Manual Input**: No need to provide title, caption, or hashtags - all extracted from source automatically
+    - **Workflow**: Send URL → Auto-download → Auto-extract metadata → Upload to Facebook with source metadata
     - **Instagram Download**: `instagramDownload` - Uses `insta-fetcher` library v1.3.35
       - **Data Structure Fix**: Updated to use `result.links[]` array instead of deprecated `url_list` property
+      - **Metadata Extraction**: Auto-extracts caption, hashtags, and author from Instagram
       - **Supported Content**: Video posts, reels, and stories
       - **Format**: Returns video URL with dimensions and file info
     - **TikTok Download**: `tiktokDownload` - Uses `@tobyg74/tiktok-api-dl` library v1.3.7
       - **API Version**: Targets v2 API (more reliable than v3 which has frequent 404 errors)
+      - **Metadata Extraction**: Auto-extracts description/title, hashtags, and author from TikTok
+      - **Short URL Support**: Handles vt.tiktok.com, vm.tiktok.com, and full TikTok URLs
       - **Fallback Support**: Gracefully falls back to v3-style fields if v2 unavailable
       - **Extraction Logic**: `result.video.playAddr[0]` (v2) or `result.videoHD/videoSD` (v3)
-      - **Short URL Support**: Handles both full TikTok URLs and short links
-    - **Integration**: Both tools automatically download media and pass to Facebook upload workflow
+    - **Caption Strategy for URL Flow**:
+      - **Preserve Source Metadata**: Uses title, caption, and hashtags from TikTok/Instagram DIRECTLY
+      - **No AI Regeneration**: Bypasses AI mode to prevent caption/hashtag rewriting
+      - **Clean Integration**: Metadata merged as: title + caption + original hashtags (no modifications)
+    - **Trigger Integration**: URL detection works regardless of bot state (awaiting_media or fresh conversation)
 - **Facebook Upload Optimizations** (Fixed November 12, 2025):
     - **Resumable Upload Finalization Fix**:
       - **Issue**: "Reduce the amount of data" error when title/description sent via URL query params
