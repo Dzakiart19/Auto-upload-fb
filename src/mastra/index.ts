@@ -122,12 +122,22 @@ export const mastra = new Mastra({
         createHandler: async () => {
           return async (c) => {
             const getPublicUrl = () => {
+              // Priority 1: Custom PUBLIC_URL (untuk Termux dengan ngrok/serveo)
+              if (process.env.PUBLIC_URL) {
+                return process.env.PUBLIC_URL.trim();
+              }
+              // Priority 2: Replit environment
               if (process.env.REPLIT_DEV_DOMAIN) {
                 return `https://${process.env.REPLIT_DEV_DOMAIN}`;
               }
-              const replSlug = process.env.REPL_SLUG || "workspace";
-              const replOwner = process.env.REPL_OWNER || "unknown";
-              return `https://${replSlug}.${replOwner}.replit.dev`;
+              // Priority 3: Replit legacy
+              const replSlug = process.env.REPL_SLUG;
+              const replOwner = process.env.REPL_OWNER;
+              if (replSlug && replOwner) {
+                return `https://${replSlug}.${replOwner}.replit.dev`;
+              }
+              // Fallback: localhost (untuk testing lokal)
+              return `http://localhost:${process.env.PORT || 5000}`;
             };
             const publicUrl = getPublicUrl();
             
@@ -154,12 +164,22 @@ export const mastra = new Mastra({
         createHandler: async () => {
           return async (c) => {
             const getPublicUrl = () => {
+              // Priority 1: Custom PUBLIC_URL (untuk Termux dengan ngrok/serveo)
+              if (process.env.PUBLIC_URL) {
+                return process.env.PUBLIC_URL.trim();
+              }
+              // Priority 2: Replit environment
               if (process.env.REPLIT_DEV_DOMAIN) {
                 return `https://${process.env.REPLIT_DEV_DOMAIN}`;
               }
-              const replSlug = process.env.REPL_SLUG || "workspace";
-              const replOwner = process.env.REPL_OWNER || "unknown";
-              return `https://${replSlug}.${replOwner}.replit.dev`;
+              // Priority 3: Replit legacy
+              const replSlug = process.env.REPL_SLUG;
+              const replOwner = process.env.REPL_OWNER;
+              if (replSlug && replOwner) {
+                return `https://${replSlug}.${replOwner}.replit.dev`;
+              }
+              // Fallback: localhost (untuk testing lokal)
+              return `http://localhost:${process.env.PORT || 5000}`;
             };
             const publicUrl = getPublicUrl();
             
@@ -340,17 +360,25 @@ if (Object.keys(mastra.getAgents()).length > 1) {
 
 // Display public URL on startup with proper URL detection
 const getPublicUrl = () => {
-  // Priority 1: Use REPLIT_DEV_DOMAIN if available (most reliable)
+  // Priority 1: Custom PUBLIC_URL (untuk Termux dengan ngrok/serveo)
+  if (process.env.PUBLIC_URL) {
+    return process.env.PUBLIC_URL.trim();
+  }
+  
+  // Priority 2: Use REPLIT_DEV_DOMAIN if available (most reliable)
   if (process.env.REPLIT_DEV_DOMAIN) {
     return `https://${process.env.REPLIT_DEV_DOMAIN}`;
   }
   
-  // Priority 2: Build from REPL_SLUG and REPL_OWNER
-  const replSlug = process.env.REPL_SLUG || "workspace";
-  const replOwner = process.env.REPL_OWNER || "unknown";
+  // Priority 3: Build from REPL_SLUG and REPL_OWNER
+  const replSlug = process.env.REPL_SLUG;
+  const replOwner = process.env.REPL_OWNER;
+  if (replSlug && replOwner) {
+    return `https://${replSlug}.${replOwner}.replit.dev`;
+  }
   
-  // Try .replit.dev first, fallback to .repl.co
-  return `https://${replSlug}.${replOwner}.replit.dev`;
+  // Fallback: localhost (untuk testing lokal)
+  return `http://localhost:${process.env.PORT || 5000}`;
 };
 
 const publicUrl = getPublicUrl();
@@ -370,9 +398,11 @@ logger?.info("📝 Verifikasi Webhook:");
 logger?.info(`   https://api.telegram.org/bot<TOKEN>/getWebhookInfo`);
 logger?.info("🚀 ========================================");
 
-// Auto-setup webhook if TELEGRAM_BOT_TOKEN is available
+// Auto-setup webhook if TELEGRAM_BOT_TOKEN is available and AUTO_WEBHOOK is enabled
 const telegramToken = process.env.TELEGRAM_BOT_TOKEN?.trim();
-if (telegramToken) {
+const autoWebhook = process.env.AUTO_WEBHOOK !== 'false'; // Default true, set ke 'false' untuk disable
+
+if (telegramToken && autoWebhook && publicUrl.startsWith('http')) {
   const webhookUrl = `${publicUrl}/webhooks/telegram/action`;
   const setWebhookUrl = `https://api.telegram.org/bot${telegramToken}/setWebhook?url=${webhookUrl}`;
   
@@ -402,4 +432,7 @@ if (telegramToken) {
       logger?.warn("⚠️  Gagal menghubungi Telegram API:", err.message);
       logger?.info("💡 Silakan set webhook manual dengan URL di atas");
     });
+} else if (telegramToken && !autoWebhook) {
+  logger?.info("⚙️  AUTO_WEBHOOK disabled. Set webhook manual jika diperlukan");
+  logger?.info(`   https://api.telegram.org/bot<TOKEN>/setWebhook?url=${publicUrl}/webhooks/telegram/action`);
 }

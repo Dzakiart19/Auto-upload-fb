@@ -90,6 +90,12 @@ NODE_ENV=production
 
 # Port
 PORT=5000
+
+# Public URL (isi setelah setup ngrok/serveo - biarkan kosong dulu)
+# PUBLIC_URL=https://abc123.ngrok.io
+
+# Auto Webhook Setup (set false jika ingin manual)
+AUTO_WEBHOOK=true
 ```
 
 Tekan `CTRL + X`, lalu `Y`, lalu `Enter` untuk save.
@@ -158,7 +164,24 @@ ngrok http 5000
 
 5. Copy URL yang muncul (contoh: `https://abcd1234.ngrok.io`)
 
-6. Set webhook Telegram:
+6. **Update file `.env`** - tambahkan PUBLIC_URL:
+```bash
+nano .env
+# Tambahkan/edit baris ini dengan URL dari ngrok:
+# PUBLIC_URL=https://abcd1234.ngrok.io
+```
+Save dengan `CTRL+X`, `Y`, `Enter`.
+
+7. **Restart bot** agar menggunakan URL baru:
+```bash
+# Stop bot (CTRL+C jika masih jalan)
+# Lalu jalankan lagi
+npm run dev
+```
+
+✅ **Webhook akan otomatis di-set!** Bot akan otomatis register webhook ke Telegram saat start.
+
+Atau set manual jika diperlukan:
 ```bash
 # Ganti YOUR_BOT_TOKEN dan NGROK_URL
 curl "https://api.telegram.org/botYOUR_BOT_TOKEN/setWebhook?url=NGROK_URL/webhooks/telegram/action"
