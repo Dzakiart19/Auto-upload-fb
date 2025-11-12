@@ -8,6 +8,8 @@ import { facebookUploadVideoSmart } from "../tools/facebookUploadVideoSmart";
 import { facebookUploadPhoto } from "../tools/facebookUploadPhoto";
 import { facebookShareToGroups } from "../tools/facebookShareToGroups";
 import { telegramSendMessage } from "../tools/telegramSendMessage";
+import { generateEngagingCaption } from "../tools/generateEngagingCaption";
+import { generateTrendingHashtags } from "../tools/generateTrendingHashtags";
 import * as fs from "fs";
 
 // Check if AI should be used or fallback to direct tool calls
@@ -15,6 +17,25 @@ const shouldUseAI = () => {
   const hasOpenAIKey = !!process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim() !== '';
   const fallbackEnabled = process.env.AI_FALLBACK_ENABLED !== 'false'; // Default true
   return hasOpenAIKey && !fallbackEnabled;
+};
+
+// Detect content category from title
+const detectCategory = (title: string): "meme" | "comedy" | "tutorial" | "motivasi" | "gaming" | "lifestyle" | "teknologi" | "kuliner" | "travel" | "music" | "sports" | "general" => {
+  const titleLower = title.toLowerCase();
+  
+  if (titleLower.match(/meme|lucu|ngakak|ketawa|🤣|😂/)) return "meme";
+  if (titleLower.match(/comedy|komedi|lawak|humor/)) return "comedy";
+  if (titleLower.match(/tutorial|cara|tips|belajar|how to/)) return "tutorial";
+  if (titleLower.match(/motivasi|inspirasi|semangat|sukses/)) return "motivasi";
+  if (titleLower.match(/game|gaming|ml|pubg|ff|freefire/)) return "gaming";
+  if (titleLower.match(/lifestyle|vlog|daily|ootd/)) return "lifestyle";
+  if (titleLower.match(/teknologi|tech|gadget|hp|smartphone/)) return "teknologi";
+  if (titleLower.match(/makanan|kuliner|food|makan/)) return "kuliner";
+  if (titleLower.match(/travel|jalan|wisata|liburan/)) return "travel";
+  if (titleLower.match(/musik|music|lagu|song/)) return "music";
+  if (titleLower.match(/olahraga|sport|fitness|gym/)) return "sports";
+  
+  return "general";
 };
 
 // Fallback: Direct tool execution without AI
@@ -33,8 +54,43 @@ const processMediaDirectly = async (inputData: any, mastra: any) => {
   let convertSuccess = false;
   let uploadSuccess = false;
   let shareResults = { totalGroups: 0, successCount: 0, failCount: 0 };
+  let optimizedCaption = '';
+  let optimizedHashtags = '';
   
   try {
+    // Step 0: Generate optimized caption and hashtags
+    logger?.info("✨ [Step 0] Generating engaging caption and trending hashtags...");
+    const category = detectCategory(inputData.title);
+    
+    const captionResult = await generateEngagingCaption.execute({
+      context: {
+        title: inputData.title,
+        category: category,
+        language: "id",
+      },
+      mastra,
+      runtimeContext: {} as any
+    });
+    
+    const hashtagResult = await generateTrendingHashtags.execute({
+      context: {
+        title: inputData.title,
+        category: category,
+        language: "both",
+        maxHashtags: 15,
+      },
+      mastra,
+      runtimeContext: {} as any
+    });
+    
+    optimizedCaption = captionResult.caption;
+    optimizedHashtags = hashtagResult.hashtags;
+    
+    logger?.info("✅ [Step 0] Caption and hashtags generated", {
+      category,
+      captionLength: optimizedCaption.length,
+      hashtagCount: hashtagResult.count,
+    });
     // Step 1: Download media from Telegram (branch by media type)
     if (mediaType === 'photo') {
       logger?.info("📥 [Step 1] Downloading photo from Telegram...");
@@ -102,10 +158,14 @@ const processMediaDirectly = async (inputData: any, mastra: any) => {
     // Step 3: Upload media to Facebook Page (branch by media type)
     if (mediaType === 'photo') {
       logger?.info("📤 [Step 2] Uploading photo to Facebook Page...");
+      
+      // Combine optimized caption with hashtags
+      const fullCaption = `${optimizedCaption}\n\n${optimizedHashtags}`;
+      
       const uploadResult = await facebookUploadPhoto.execute({
         context: {
           photoPath: originalMediaPath,
-          caption: `${inputData.title}\n\n${inputData.description}`
+          caption: fullCaption
         },
         mastra,
         runtimeContext: {} as any
@@ -123,11 +183,15 @@ const processMediaDirectly = async (inputData: any, mastra: any) => {
     } else {
       // Video upload (existing flow)
       logger?.info("📤 [Step 3/5] Uploading video to Facebook Page (smart upload)...");
+      
+      // Combine optimized caption with hashtags for video description
+      const fullDescription = `${optimizedCaption}\n\n${optimizedHashtags}`;
+      
       const uploadResult = await facebookUploadVideoSmart.execute({
         context: {
           videoPath: convertedVideoPath, // Use converted video instead of original
           title: inputData.title,
-          description: inputData.description
+          description: fullDescription
         },
         mastra,
         runtimeContext: {} as any
@@ -146,11 +210,15 @@ const processMediaDirectly = async (inputData: any, mastra: any) => {
     // Step 4: Share to Facebook Groups (skip for photos for now)
     if (mediaType === 'video') {
       logger?.info("📢 [Step 4/5] Sharing to Facebook Groups...");
+      
+      // Use optimized caption for group sharing too
+      const shareMessage = `${optimizedCaption}\n\n${optimizedHashtags}`;
+      
       const shareResult = await facebookShareToGroups.execute({
         context: {
           videoUrl: mediaUrl,
           videoId: mediaId,
-          message: `${inputData.title}\n\n${inputData.description}`
+          message: shareMessage
         },
         mastra,
         runtimeContext: {} as any
@@ -175,22 +243,33 @@ const processMediaDirectly = async (inputData: any, mastra: any) => {
     let confirmationMessage = '';
     if (mediaType === 'photo') {
       confirmationMessage = `
-✅ *Foto berhasil diupload!*
+✅ *Foto berhasil diupload dengan caption optimal!*
 
-📝 *Caption:* ${inputData.title}
-${inputData.description}
+📝 *Caption yang digunakan:*
+${optimizedCaption}
+
+🏷️ *Hashtags:*
+${optimizedHashtags}
 
 🔗 *Link Foto:*
 ${mediaUrl}
 
-_Foto diproses tanpa AI (mode fallback)_
+💡 *Tips Engagement:*
+• Caption dan hashtag sudah dioptimasi untuk viral
+• Like dan comment di post untuk boost algoritma
+• Share ke story pribadi untuk reach maksimal
+
+_Foto diproses dengan optimasi engagement otomatis_
       `.trim();
     } else {
       confirmationMessage = `
-✅ *Video berhasil diupload!*
+✅ *Video berhasil diupload dengan caption optimal!*
 
-📹 *Judul:* ${inputData.title}
-📝 *Deskripsi:* ${inputData.description}
+📝 *Caption yang digunakan:*
+${optimizedCaption}
+
+🏷️ *Hashtags:*
+${optimizedHashtags}
 
 🔗 *Link Video:*
 ${mediaUrl}
@@ -203,7 +282,13 @@ ${mediaUrl}
 ${shareResults.totalGroups === 0 ? '⚠️ Tidak ada grup Facebook di groups.txt' : ''}
 ${shareResults.successCount > 0 ? '✅ Video sudah dibagikan ke grup Facebook!' : ''}
 
-_Video diproses tanpa AI (mode fallback)_
+💡 *Tips Meningkatkan Views:*
+• Caption dan hashtag sudah dioptimasi untuk viral
+• ${shareResults.successCount === 0 ? 'Share manual ke grup pribadi atau story untuk boost awal' : 'Like dan comment di post untuk boost algoritma'}
+• Tag teman-teman di komentar untuk reach organik
+• Post di waktu prime time (18:00-22:00 WIB)
+
+_Video diproses dengan optimasi engagement otomatis_
       `.trim();
     }
     
