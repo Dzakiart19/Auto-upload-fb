@@ -116,7 +116,12 @@ export const facebookUploadVideoResumable = createTool({
       const uploadSessionId = initResult.upload_session_id;
       const videoId = initResult.video_id;
       const initialStartOffset = parseInt(initResult.start_offset || '0');
-      const initialEndOffset = parseInt(initResult.end_offset || fileSize.toString());
+      
+      // IMPORTANT: Override Facebook's suggested chunk size with smaller chunks
+      // to work around Replit's slow connection to Facebook API
+      // Facebook suggests 1MB but we use 128KB for better reliability
+      const CUSTOM_CHUNK_SIZE = 131072; // 128KB in bytes (much smaller for slow connections)
+      const initialEndOffset = Math.min(initialStartOffset + CUSTOM_CHUNK_SIZE, fileSize);
       
       logger?.info('✅ [facebookUploadVideoResumable] Upload session initialized:', {
         uploadSessionId,
@@ -129,7 +134,7 @@ export const facebookUploadVideoResumable = createTool({
       // Step 2: Upload video file in chunks
       logger?.info('📤 [facebookUploadVideoResumable] Step 2: Uploading video file in chunks...');
       
-      // Upload in chunks following Facebook's offset pattern
+      // Upload in chunks following Facebook's offset pattern (using CUSTOM_CHUNK_SIZE defined above)
       // Open file once for the entire upload
       const fd = fs.openSync(context.videoPath, 'r');
       const tmpChunkDir = '/tmp/fb_chunks';
@@ -219,7 +224,7 @@ export const facebookUploadVideoResumable = createTool({
                 
                 // Add delay before each chunk (except first chunk, first attempt)
                 if (chunkNumber > 1 || retryAttempt > 1) {
-                  const delayMs = retryAttempt > 1 ? 3000 * retryAttempt : 2000; // Longer delay for retries
+                  const delayMs = retryAttempt > 1 ? 5000 * retryAttempt : 3000; // Much longer delay: 3s between chunks, 5-25s for retries
                   logger?.info(`⏱️ [facebookUploadVideoResumable] Waiting ${delayMs}ms before uploading...`);
                   await new Promise(resolve => setTimeout(resolve, delayMs));
                 }
@@ -264,11 +269,16 @@ export const facebookUploadVideoResumable = createTool({
                 
                 // Success! Extract next offsets
                 nextStartOffset = parseInt(uploadResult.start_offset || '0');
-                nextEndOffset = parseInt(uploadResult.end_offset || fileSize.toString());
+                const facebookSuggestedEndOffset = parseInt(uploadResult.end_offset || fileSize.toString());
+                
+                // Override Facebook's suggested chunk size with our custom smaller size for reliability
+                nextEndOffset = Math.min(facebookSuggestedEndOffset, nextStartOffset + CUSTOM_CHUNK_SIZE, fileSize);
                 
                 logger?.info(`✅ [facebookUploadVideoResumable] Chunk ${chunkNumber} uploaded successfully (attempt ${retryAttempt})`, {
                   nextStartOffset,
                   nextEndOffset,
+                  facebookSuggested: facebookSuggestedEndOffset,
+                  customChunkSize: CUSTOM_CHUNK_SIZE,
                   remaining: fileSize - nextStartOffset,
                 });
                 

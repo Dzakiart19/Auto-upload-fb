@@ -59,22 +59,22 @@ export const ffmpegConvertVideo = createTool({
       logger?.info('🎬 [ffmpegConvertVideo] Output path:', outputPath);
       
       // FFmpeg command to convert video with Facebook-optimized parameters
-      // OPTIMIZED for fast upload with aggressive compression
+      // ULTRA OPTIMIZED for maximum compression and smallest file size
       // -i: input file
       // -c:v libx264: use H.264 video codec (widely compatible)
-      // -profile:v main -level 3.1: H.264 profile for best compatibility (main is more compatible than high)
+      // -profile:v baseline -level 3.0: H.264 baseline profile for maximum compatibility
       // -pix_fmt yuv420p: pixel format for maximum compatibility
-      // -preset faster: faster encoding with smaller file size
-      // -crf 28: constant rate factor for good compression (28 = smaller files, still good quality)
-      // -vf scale=-2:720: scale to max 720p height for smaller file size, maintain aspect ratio
-      // -r 25: frame rate 25 fps (slightly lower for smaller file)
-      // -maxrate 1.5M -bufsize 3M: lower bitrate for faster upload
+      // -preset veryfast: very fast encoding (prioritize speed over size)
+      // -crf 32: constant rate factor for maximum compression (32 = very small files, acceptable quality)
+      // -vf scale=-2:480: scale to max 480p for very small file size
+      // -r 24: frame rate 24 fps (minimum acceptable)
+      // -maxrate 800k -bufsize 1600k: very low bitrate for smallest file
       // -c:a aac: use AAC audio codec (widely compatible)
-      // -b:a 96k: audio bitrate 96 kbps (lower for smaller file)
+      // -b:a 64k: audio bitrate 64 kbps (minimum acceptable quality)
       // -ar 44100: audio sample rate 44.1 kHz
       // -movflags +faststart: enable progressive upload/playback
       // -y: overwrite output file if exists
-      const ffmpegCommand = `ffmpeg -i "${context.videoPath}" -c:v libx264 -profile:v main -level 3.1 -pix_fmt yuv420p -preset faster -crf 28 -vf scale=-2:720 -r 25 -maxrate 1.5M -bufsize 3M -c:a aac -b:a 96k -ar 44100 -movflags +faststart -y "${outputPath}"`;
+      const ffmpegCommand = `ffmpeg -i "${context.videoPath}" -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -preset veryfast -crf 32 -vf scale=-2:480 -r 24 -maxrate 800k -bufsize 1600k -c:a aac -b:a 64k -ar 44100 -movflags +faststart -y "${outputPath}"`;
       
       logger?.info('🎥 [ffmpegConvertVideo] Executing FFmpeg command...');
       logger?.debug('📝 [ffmpegConvertVideo] Command:', ffmpegCommand);
