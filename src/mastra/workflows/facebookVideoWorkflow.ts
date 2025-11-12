@@ -781,12 +781,15 @@ const prepareMediaData = createStep({
         });
         
         // Merge downloaded data with metadata
+        // NOTE: caption from TikTok/Instagram already contains hashtags, so don't duplicate
         const mergedTitle = downloadResult.title || inputData.title || 'Video';
-        const mergedDescription = [
-          downloadResult.caption || '',
-          inputData.description || '',
-          downloadResult.hashtags || '',
-        ].filter(Boolean).join('\n\n').trim() || 'Video dari TikTok/Instagram';
+        const mergedDescription = downloadResult.caption || inputData.description || 'Video dari TikTok/Instagram';
+        
+        logger?.info('✅ [prepareMediaData] Merged metadata:', {
+          title: mergedTitle.substring(0, 50),
+          descriptionLength: mergedDescription.length,
+          hasCaption: !!downloadResult.caption,
+        });
         
         return {
           threadId: inputData.threadId,
