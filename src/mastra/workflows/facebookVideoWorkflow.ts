@@ -19,8 +19,13 @@ const shouldUseAI = () => {
   return hasOpenAIKey && !fallbackEnabled;
 };
 
-// Detect content category from title
-const detectCategory = (title: string): "meme" | "comedy" | "tutorial" | "motivasi" | "gaming" | "lifestyle" | "teknologi" | "kuliner" | "travel" | "music" | "sports" | "general" => {
+// Detect content category from title (with safe fallback)
+const detectCategory = (title: string | undefined | null): "meme" | "comedy" | "tutorial" | "motivasi" | "gaming" | "lifestyle" | "teknologi" | "kuliner" | "travel" | "music" | "sports" | "general" => {
+  // Safety: handle missing or empty title
+  if (!title || typeof title !== 'string' || title.trim() === '') {
+    return "general";
+  }
+  
   const titleLower = title.toLowerCase();
   
   if (titleLower.match(/meme|lucu|ngakak|ketawa|🤣|😂/)) return "meme";
@@ -58,39 +63,57 @@ const processMediaDirectly = async (inputData: any, mastra: any) => {
   let optimizedHashtags = '';
   
   try {
-    // Step 0: Generate optimized caption and hashtags
+    // Step 0: Generate optimized caption and hashtags (with graceful fallback)
     logger?.info("✨ [Step 0] Generating engaging caption and trending hashtags...");
-    const category = detectCategory(inputData.title);
     
-    const captionResult = await generateEngagingCaption.execute({
-      context: {
-        title: inputData.title,
-        category: category,
-        language: "id",
-      },
-      mastra,
-      runtimeContext: {} as any
-    });
+    // Validate and provide defaults for required inputs
+    const safeTitle = inputData.title || 'Media upload';
+    const safeDescription = inputData.description || '';
+    const category = detectCategory(safeTitle);
     
-    const hashtagResult = await generateTrendingHashtags.execute({
-      context: {
-        title: inputData.title,
-        category: category,
-        language: "both",
-        maxHashtags: 15,
-      },
-      mastra,
-      runtimeContext: {} as any
-    });
-    
-    optimizedCaption = captionResult.caption;
-    optimizedHashtags = hashtagResult.hashtags;
-    
-    logger?.info("✅ [Step 0] Caption and hashtags generated", {
-      category,
-      captionLength: optimizedCaption.length,
-      hashtagCount: hashtagResult.count,
-    });
+    // Try to generate optimized caption and hashtags, but fall back to user input if it fails
+    try {
+      const captionResult = await generateEngagingCaption.execute({
+        context: {
+          title: safeTitle,
+          category: category,
+          language: "id",
+        },
+        mastra,
+        runtimeContext: {} as any
+      });
+      
+      const hashtagResult = await generateTrendingHashtags.execute({
+        context: {
+          title: safeTitle,
+          category: category,
+          language: "both",
+          maxHashtags: 15,
+        },
+        mastra,
+        runtimeContext: {} as any
+      });
+      
+      optimizedCaption = captionResult.caption;
+      optimizedHashtags = hashtagResult.hashtags;
+      
+      logger?.info("✅ [Step 0] Caption and hashtags generated successfully", {
+        category,
+        captionLength: optimizedCaption.length,
+        hashtagCount: hashtagResult.count,
+      });
+      
+    } catch (captionError: any) {
+      // Graceful fallback: use user-provided caption/description if optimization fails
+      logger?.warn("⚠️ [Step 0] Caption/hashtag generation failed, using user input as fallback", {
+        error: captionError.message,
+      });
+      
+      optimizedCaption = safeTitle;
+      optimizedHashtags = safeDescription;
+      
+      logger?.info("✅ [Step 0] Using fallback caption (user input)");
+    }
     // Step 1: Download media from Telegram (branch by media type)
     if (mediaType === 'photo') {
       logger?.info("📥 [Step 1] Downloading photo from Telegram...");
