@@ -42,16 +42,17 @@ export const generateTrendingHashtags = createTool({
     const { title, category, language, maxHashtags } = context;
     
     // Trending hashtags per category (Indonesian + English)
+    // OPTIMIZED for Indonesian meme absurd/random/brainrot niche groups
     const categoryHashtags: Record<string, { id: string[], en: string[], universal: string[] }> = {
       meme: {
-        id: ["memeindo", "memeabsurd", "memeindonesia", "randomvideo", "brainrot", "humorabsurd", "videolucu", "randompost", "perfectcut", "humorreceh", "ngakak", "ketawa"],
-        en: ["memes", "funnymemes", "absurdhumor", "brainrot", "randomvideos", "perfectcut", "dankmemes", "memesdaily"],
-        universal: ["reels", "video"],
+        id: ["memeindo", "memeabsurd", "memeindonesia", "randomvideo", "brainrot", "humorabsurd", "videolucu", "randompost", "perfectcut", "humorreceh", "ngakak", "ketawa", "memelucu", "alay", "reelsindonesia", "grupmemerandom"],
+        en: ["absurdhumor", "brainrotmemes", "randomvideos", "perfectlycut", "memesid"],
+        universal: ["reels", "video", "randomcontent"],
       },
       comedy: {
-        id: ["comedy", "lucu", "komedi", "humor", "ngakak", "kocak", "lawak"],
-        en: ["comedy", "funny", "humor", "hilarious", "laugh", "jokes"],
-        universal: ["viral", "entertainment", "funnyvideos", "lol"],
+        id: ["lucu", "humor", "ngakak", "kocak", "videolucu", "humorreceh", "randompost"],
+        en: ["funny", "humor", "randomhumor"],
+        universal: ["reels", "video"],
       },
       tutorial: {
         id: ["tutorial", "tips", "belajar", "edukasi", "howto", "caranya", "panduan"],
@@ -99,35 +100,36 @@ export const generateTrendingHashtags = createTool({
         universal: ["fitnessmotivation", "sport", "healthy"],
       },
       brainrot: {
-        id: ["brainrot", "brainrotmeme", "randomvideo", "absurd", "receh"],
-        en: ["brainrot", "brainrotmemes", "randomcontent"],
-        universal: ["reels"],
+        id: ["brainrot", "brainrotmeme", "randomvideo", "absurd", "receh", "memeabsurd", "randompost", "humorabsurd", "videolucu", "alay"],
+        en: ["brainrotmemes", "absurdhumor", "randomcontent"],
+        universal: ["reels", "video"],
       },
       absurd: {
-        id: ["humorabsurd", "memeabsurd", "absurd", "kocak", "receh"],
-        en: ["absurdhumor", "absurdmemes", "randomhumor"],
-        universal: ["video"],
+        id: ["humorabsurd", "memeabsurd", "absurd", "kocak", "receh", "randomvideo", "videolucu", "randompost", "brainrot", "alay"],
+        en: ["absurdhumor", "randomvideos", "brainrotmemes"],
+        universal: ["reels", "video"],
       },
       random: {
-        id: ["randomvideo", "randompost", "randomcontent", "videorandom"],
-        en: ["randomvideos", "randomcontent", "randomstuff"],
-        universal: ["reels"],
+        id: ["randomvideo", "randompost", "randomcontent", "videorandom", "videolucu", "memeabsurd", "humorabsurd", "reelsindonesia"],
+        en: ["randomvideos", "randomcontent", "absurdhumor"],
+        universal: ["reels", "video"],
       },
       perfectcut: {
-        id: ["perfectcut", "perfectlycut", "videolucu", "cutperfect"],
-        en: ["perfectcut", "perfectlycutscreams", "perfectlycutvideo"],
-        universal: ["video"],
+        id: ["perfectcut", "perfectlycut", "videolucu", "cutperfect", "randomvideo", "memeindo"],
+        en: ["perfectlycutscreams", "perfectlycutvideo", "perfectlycut"],
+        universal: ["reels", "video"],
       },
       general: {
-        id: ["video", "reels", "konten", "keren", "seru", "indonesia"],
-        en: ["video", "reels", "content", "cool", "awesome"],
-        universal: ["videolucu", "randomvideo"],
+        id: ["videolucu", "randomvideo", "reelsindonesia", "memeindo", "randompost", "videorandom"],
+        en: ["randomvideos", "randomcontent"],
+        universal: ["reels", "video"],
       },
     };
     
-    // Global trending hashtags (always popular)
+    // Global trending hashtags optimized for Indonesian meme absurd/random niche
     const globalTrending = [
-      "reels", "video", "videolucu", "randomvideo", "memeindo",
+      "randomvideo", "videolucu", "memeindo", "randompost", "reelsindonesia",
+      "humorabsurd", "memeabsurd", "brainrot", "perfectcut", "alay",
     ];
     
     const hashtagSet = new Set<string>();
