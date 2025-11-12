@@ -70,12 +70,17 @@ Preferred communication style: Simple, everyday language.
 ## Technical Implementations
 - **Engagement Optimization System** (November 2025):
     - **Tool**: `generateEngagingCaption` - Creates viral-worthy captions with emojis and call-to-action
-    - **Categories Supported**: meme, comedy, tutorial, motivasi, gaming, lifestyle, teknologi, kuliner, travel, music, sports, general
+    - **Categories Supported**: meme, comedy, tutorial, motivasi, gaming, lifestyle, teknologi, kuliner, travel, music, sports, **brainrot**, **absurd**, **random**, **perfectcut**, general
     - **Caption Structure**: Hook + Title + Emoji + CTA + Engagement footer
     - **Customizable**: Language (ID/EN), category-specific templates
+    - **Style Updates** (November 12, 2025): Meme/brainrot hooks now use Indonesian gaul style ("POV:", "Anjir! 😭", "Receh banget! 🤣", "Brainrot content! 🔥")
     - **Tool**: `generateTrendingHashtags` - Generates trending hashtags for maximum discoverability
-    - **Hashtag Sources**: Category-specific (ID + EN), title keywords, universal trending, global viral hashtags
+    - **Niche Focus** (November 12, 2025): **Optimized for Indonesian meme absurd/brainrot/random niche**
+    - **Hashtag Sources**: Category-specific niche tags (ID: #memeindo, #memeabsurd, #brainrot, #humorabsurd, #randomvideo, #perfectcut, #videolucu; EN: #absurdhumor, #brainrotmemes, #randomvideos), title keywords, minimal viral hashtags
     - **Max Hashtags**: Configurable (default 15)
+    - **Generic Tags Removed**: Eliminated generic viral hashtags (#viral, #trending, #fyp, #foryou, #foryoupage, #explore, #instagram, #facebook) in favor of niche-specific tags
+    - **New Categories**: brainrot (brainrot memes), absurd (absurd humor), random (random content), perfectcut (perfectly cut videos)
+    - **Category Detection**: Automatic keyword-based detection for all 15 categories including new niche categories
     - **Integration**: Automatically applied to all video/photo uploads in fallback mode
     - **AI Mode**: Agent instructed to use these tools for all uploads
 - **Media Type Branching** (November 2025):
