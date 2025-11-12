@@ -37,12 +37,21 @@ const userStates = new Map<string | number, {
 const processingFiles = new Map<string, number>();
 const PROCESSING_TIMEOUT = 5 * 60 * 1000; // 5 menit
 
+// Idempotency check untuk URL: Track URLs yang sedang diproses untuk mencegah duplicate upload
+const processingUrls = new Map<string, number>();
+
 // Cleanup old entries setiap 10 menit
 setInterval(() => {
   const now = Date.now();
   for (const [key, timestamp] of processingFiles.entries()) {
     if (now - timestamp > PROCESSING_TIMEOUT) {
       processingFiles.delete(key);
+    }
+  }
+  // Also cleanup old URL entries
+  for (const [key, timestamp] of processingUrls.entries()) {
+    if (now - timestamp > PROCESSING_TIMEOUT) {
+      processingUrls.delete(key);
     }
   }
 }, 10 * 60 * 1000);
@@ -209,6 +218,38 @@ export function registerTelegramTrigger({
                 extractedUrl: cleanUrl,
               });
               
+              // Idempotency check: Cegah duplicate processing untuk URL yang sama
+              const urlKey = `${chatId}-${cleanUrl}`;
+              const now = Date.now();
+              
+              if (processingUrls.has(urlKey)) {
+                const processingTime = processingUrls.get(urlKey)!;
+                const elapsedTime = now - processingTime;
+                
+                if (elapsedTime < PROCESSING_TIMEOUT) {
+                  logger?.warn(`⚠️ [Telegram] Duplicate URL request detected dan diabaikan`, {
+                    urlKey,
+                    chatId,
+                    platform,
+                    url: cleanUrl,
+                    elapsedTime: Math.floor(elapsedTime / 1000) + 's',
+                  });
+                  
+                  await sendTelegramMessage(
+                    chatId,
+                    `⚠️ Video dari ${platform} ini sedang diproses.\n\nMohon tunggu beberapa saat...`
+                  );
+                  
+                  return c.text("OK", 200);
+                }
+              }
+              
+              // Mark URL sebagai sedang diproses
+              // IMPORTANT: Lock persists for full PROCESSING_TIMEOUT (5 min) to prevent duplicates
+              // even when handler returns immediately after enqueueing workflow
+              processingUrls.set(urlKey, now);
+              logger?.info(`🔒 [Telegram] Marking URL as processing (lock will auto-expire in ${PROCESSING_TIMEOUT/1000}s)`, { urlKey, chatId, platform });
+              
               // Send acknowledgement
               await sendTelegramMessage(
                 chatId,
@@ -241,6 +282,9 @@ export function registerTelegramTrigger({
                   userName,
                 },
               } as TriggerInfoTelegramOnNewMessage);
+              
+              // NOTE: Lock is NOT cleared here - it will auto-expire via cleanup interval
+              // This ensures duplicate messages arriving seconds later are still blocked
               
               return c.text("OK", 200);
             }
