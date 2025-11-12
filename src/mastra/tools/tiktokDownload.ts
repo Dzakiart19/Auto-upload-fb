@@ -52,6 +52,15 @@ export const tiktokDownload = createTool({
         type: videoData.type,
       });
       
+      // Check if this is an image carousel (not a video)
+      if (videoData.type === 'image') {
+        logger?.warn('⚠️ [tiktokDownload] TikTok post is an image carousel, not a video');
+        return {
+          success: false,
+          error: 'TikTok post ini adalah gambar/slideshow, bukan video. Bot hanya support download video TikTok. Silakan gunakan URL video TikTok atau upload manual.',
+        };
+      }
+      
       // Extract metadata
       const title = videoData.desc || 'TikTok Video';
       const caption = videoData.desc || '';
