@@ -1,0 +1,28 @@
+Instance created. Preparing to start...
+Instance created. Preparing to start...
+Instance stopped.
+Starting download for registry01.prod.koyeb.com/k-52d876ba-41d5-4c8c-8e13-18cfc19e8371/c3e2a954-b6b8-43af-a708-fb1b33699317:a1074bf3-b612-41bd-aa16-90a33e64b316
+Download progress: 100% |[32m++++++++[0m| (18.7 MiB/s)
+Download complete for registry01.prod.koyeb.com/k-52d876ba-41d5-4c8c-8e13-18cfc19e8371/c3e2a954-b6b8-43af-a708-fb1b33699317:a1074bf3-b612-41bd-aa16-90a33e64b316
+Instance is starting... Waiting for health checks to pass.
+{"level":"warn","time":"2025-11-12T23:31:41.223Z","name":"Mastra","msg":"Mastra telemetry is deprecated and will be removed on the Nov 4th release. Instead use AI Tracing. More info can be found here: https://github.com/mastra-ai/mastra/issues/8577 and here: https://mastra.ai/en/docs/observability/ai-tracing/overview"}
+{"level":"info","time":"2025-11-12T23:31:41.230Z","name":"Mastra","msg":"🚀 ========================================"}
+{"level":"info","time":"2025-11-12T23:31:41.230Z","name":"Mastra","msg":"🎬 Bot Telegram untuk Upload Video ke Facebook"}
+{"level":"info","time":"2025-11-12T23:31:41.230Z","name":"Mastra","msg":"🚀 ========================================"}
+{"level":"info","time":"2025-11-12T23:31:41.230Z","name":"Mastra","msg":"🌍 URL Publik AKTIF: https://biological-malanie-dzeckyete-91da18c7.koyeb.app"}
+{"level":"info","time":"2025-11-12T23:31:41.230Z","name":"Mastra","msg":"📡 Webhook Telegram: https://biological-malanie-dzeckyete-91da18c7.koyeb.app/webhooks/telegram/action"}
+{"level":"info","time":"2025-11-12T23:31:41.230Z","name":"Mastra","msg":"📊 Status Endpoint: https://biological-malanie-dzeckyete-91da18c7.koyeb.app/status"}
+{"level":"info","time":"2025-11-12T23:31:41.230Z","name":"Mastra","msg":"❤️  Keep-Alive: https://biological-malanie-dzeckyete-91da18c7.koyeb.app/ping"}
+{"level":"info","time":"2025-11-12T23:31:41.230Z","name":"Mastra","msg":"🚀 ========================================"}
+{"level":"info","time":"2025-11-12T23:31:41.230Z","name":"Mastra","msg":"📝 Setup Telegram Webhook:"}
+{"level":"info","time":"2025-11-12T23:31:41.230Z","name":"Mastra","msg":"   https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://biological-malanie-dzeckyete-91da18c7.koyeb.app/webhooks/telegram/action"}
+{"level":"info","time":"2025-11-12T23:31:41.230Z","name":"Mastra","msg":"📝 Verifikasi Webhook:"}
+{"level":"info","time":"2025-11-12T23:31:41.230Z","name":"Mastra","msg":"   https://api.telegram.org/bot<TOKEN>/getWebhookInfo"}
+{"level":"info","time":"2025-11-12T23:31:41.230Z","name":"Mastra","msg":"🚀 ========================================"}
+{"level":"info","time":"2025-11-12T23:31:41.230Z","name":"Mastra","msg":"🔄 Auto-setting Telegram webhook..."}
+{"level":"info","time":"2025-11-12T23:31:41.230Z","name":"Mastra","msg":"   Webhook URL: https://biological-malanie-dzeckyete-91da18c7.koyeb.app/webhooks/telegram/action"}
+{"level":"info","time":"2025-11-12T23:31:41.230Z","name":"Mastra","msg":"   Bot Token Length: 46 characters"}
+{"level":"info","time":"2025-11-12T23:31:41.387Z","name":"Mastra","msg":" Mastra API running on port http://0.0.0.0:3000/api"}
+{"level":"info","time":"2025-11-12T23:31:41.787Z","name":"Mastra","msg":"✅ Telegram webhook berhasil di-set!"}
+{"level":"info","time":"2025-11-12T23:31:41.787Z","name":"Mastra","msg":"   Webhook URL: https://biological-malanie-dzeckyete-91da18c7.koyeb.app/webhooks/telegram/action"}
+{"level":"info","time":"2025-11-12T23:31:42.090Z","name":"Mastra","url":"https://biological-malanie-dzeckyete-91da18c7.koyeb.app/webhooks/telegram/action","has_custom_certificate":false,"pending_update_count":2,"max_connections":40,"ip_address":"172.66.172.174","msg":"📊 Webhook Info:"}
