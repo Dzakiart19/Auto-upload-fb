@@ -63,6 +63,35 @@ https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://fc29960b-e4e3-4b9b-8c
 
 ### Fix Terbaru (Nov 12, 2025):
 
+#### ✅ **Smart Upload System - Automatic Method Selection (LATEST)**
+
+**Masalah:**
+- Error 1363030 sering terjadi pada upload video kecil
+- Resumable upload memiliki kompleksitas form-data encoding yang menyebabkan error
+- Perlu sistem yang otomatis memilih metode upload terbaik berdasarkan ukuran file
+
+**Solusi Smart Upload:**
+1. **Tool Baru: `facebookUploadVideoSmart`**
+   - Otomatis memilih simple upload untuk file <20MB (lebih cepat, reliable)
+   - Otomatis memilih resumable upload untuk file >=20MB (support file besar)
+   - Threshold dapat dikonfigurasi via env var `FACEBOOK_FILE_SIZE_THRESHOLD_MB`
+
+2. **Intelligent Retry Logic**:
+   - Hanya retry pada error 1363030 (transient error Facebook)
+   - Jika simple upload gagal dengan error 1363030, otomatis retry dengan resumable
+   - Tidak retry pada error validasi/konfigurasi (hemat API calls)
+
+3. **Accurate Telemetry**:
+   - Track dan report metode upload yang benar-benar digunakan
+   - Logging detail untuk debugging: ukuran file, metode dipilih, fallback status
+
+**Perubahan:**
+- `facebookUploadVideoSmart.ts`: Tool wrapper pintar yang koordinasi simple/resumable upload
+- `facebookVideoWorkflow.ts`: Updated untuk gunakan smart upload
+- `facebookVideoAgent.ts`: Updated untuk gunakan smart upload
+
+**Status**: ✅ PRODUCTION READY - Siap untuk test end-to-end
+
 #### ✅ **Fix Upload Video Error 390 - Video Invalid/Corrupt (COMPLETE)**
 
 **Masalah:**
