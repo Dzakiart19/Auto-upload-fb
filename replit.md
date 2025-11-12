@@ -128,6 +128,24 @@ Preferred communication style: Simple, everyday language.
     - **Photo Download**: `telegramDownloadPhoto` - Downloads photos to `/tmp/telegram_photos/`
     - **Format Preservation**: Maintains original file extensions from Telegram
     - **Size Validation**: Checks file integrity and minimum size requirements
+- **Instagram & TikTok Download Integration** (Updated November 12, 2025):
+    - **Instagram Download**: `instagramDownload` - Uses `insta-fetcher` library v1.3.35
+      - **Data Structure Fix**: Updated to use `result.links[]` array instead of deprecated `url_list` property
+      - **Supported Content**: Video posts, reels, and stories
+      - **Format**: Returns video URL with dimensions and file info
+    - **TikTok Download**: `tiktokDownload` - Uses `@tobyg74/tiktok-api-dl` library v1.3.7
+      - **API Version**: Targets v2 API (more reliable than v3 which has frequent 404 errors)
+      - **Fallback Support**: Gracefully falls back to v3-style fields if v2 unavailable
+      - **Extraction Logic**: `result.video.playAddr[0]` (v2) or `result.videoHD/videoSD` (v3)
+      - **Short URL Support**: Handles both full TikTok URLs and short links
+    - **Integration**: Both tools automatically download media and pass to Facebook upload workflow
+- **Facebook Upload Optimizations** (Fixed November 12, 2025):
+    - **Resumable Upload Finalization Fix**:
+      - **Issue**: "Reduce the amount of data" error when title/description sent via URL query params
+      - **Solution**: Send metadata via POST body using FormData instead of URL params
+      - **Implementation**: Uses axios with FormData for reliable Node.js streaming support
+      - **Benefits**: Supports long captions/descriptions (300+ chars) with hashtags without URL length limits
+    - **Node.js Compatibility**: Switched from `fetch` to `axios` for FormData streaming to avoid "duplex: half" requirement in Node ≥18
 - **AI Fallback Mechanism**: The system can operate without an OpenAI API key, directly executing tools. This is configurable via `AI_FALLBACK_ENABLED`.
 
 ## Design Patterns
