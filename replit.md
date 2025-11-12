@@ -6,10 +6,12 @@ The application allows users to send videos through Telegram, provide a title an
 
 Key capabilities include:
 - Receiving video content and metadata from Telegram.
+- Automatic video format conversion using FFmpeg to ensure Facebook compatibility.
 - AI-assisted processing and workflow orchestration (optional).
 - Automated video upload to Facebook Pages.
 - Automated sharing of uploaded videos to multiple Facebook Groups.
 - Robust error handling for video uploads, including smart upload method selection (simple vs. resumable) and content-type validation.
+- Automatic cleanup of temporary files to prevent disk space issues.
 
 # User Preferences
 
@@ -60,6 +62,13 @@ Preferred communication style: Simple, everyday language.
     - Preserves original file format from Telegram.
     - Correct implementation of Facebook's resumable upload protocol, including offset management and chunk handling.
     - Automatic exchange of User Access Token for Page Access Token.
+- **FFmpeg Video Conversion** (November 2025):
+    - **Tool**: `ffmpegConvertVideo` - Converts videos to Facebook-compatible format (H.264/AAC) using FFmpeg.
+    - **Command**: `ffmpeg -i [input] -c:v libx264 -preset fast -c:a aac -strict experimental [output]`
+    - **Integration**: Workflow automatically converts all Telegram videos before uploading to Facebook, preventing "file corrupt" errors.
+    - **Cleanup**: Both original and converted video files are automatically deleted after upload (success or failure) to prevent disk space issues.
+    - **Logging**: Extensive logging throughout conversion process for debugging and monitoring.
+    - **Error Handling**: Graceful failure with detailed error messages if conversion fails.
 - **AI Fallback Mechanism**: The system can operate without an OpenAI API key, directly executing tools. This is configurable via `AI_FALLBACK_ENABLED`.
 
 ## Design Patterns
@@ -91,6 +100,7 @@ Preferred communication style: Simple, everyday language.
 ## Third-Party Integrations
 - **MCP (Model Context Protocol)**: Extensible tool integration.
 - **Form Data Handling**: For multipart form uploads.
+- **FFmpeg**: Video transcoding and format conversion (system dependency).
 
 ## Configuration Files
 - `.env`: Environment variables for API keys and tokens.
