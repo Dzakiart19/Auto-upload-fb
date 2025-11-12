@@ -19,6 +19,10 @@ export const generateEngagingCaption = createTool({
       "travel",
       "music",
       "sports",
+      "brainrot",
+      "absurd",
+      "random",
+      "perfectcut",
       "general"
     ]).optional().default("general").describe("Content category for targeted caption"),
     language: z.enum(["id", "en"]).optional().default("id").describe("Caption language"),
@@ -50,6 +54,10 @@ export const generateEngagingCaption = createTool({
       travel: ["✈️", "🌍", "🗺️", "📸", "🌅", "🏖️"],
       music: ["🎵", "🎶", "🎤", "🎧", "🔊", "💿"],
       sports: ["⚽", "🏀", "🏆", "💪", "🔥", "⚡"],
+      brainrot: ["🧠", "💀", "😭", "🤣", "🔥", "💯"],
+      absurd: ["😂", "🤣", "💀", "😭", "🔥", "🎭"],
+      random: ["🎲", "🤪", "😂", "💀", "🔥", "✨"],
+      perfectcut: ["✂️", "⏰", "😂", "💀", "🔥", "🎯"],
       general: ["✨", "🔥", "💯", "👀", "🎯", "💫"],
     };
     
@@ -83,11 +91,14 @@ export const generateEngagingCaption = createTool({
     // Hook templates per category (Indonesian)
     const hookTemplatesID: Record<string, string[]> = {
       meme: [
-        "Ketawa dulu gak sih? 😂",
-        "Ini sih relate banget! 🤣",
         "POV:",
-        "Gak kuat liat ini! 💀",
-        "Mood banget! 😭",
+        "Anjir! 😭",
+        "Gak kuat! 💀",
+        "Receh banget! 🤣",
+        "Random!",
+        "Absurd! 😂",
+        "Brainrot content! 🔥",
+        "Ini kenapa sih! 🤣",
       ],
       comedy: [
         "Dijamin ngakak! 😄",
@@ -113,6 +124,31 @@ export const generateEngagingCaption = createTool({
         "Pro player move! 🏆",
         "GG banget! 🕹️",
         "Watch this! 👾",
+      ],
+      brainrot: [
+        "Brainrot alert! 🧠",
+        "Random banget! 🤣",
+        "POV:",
+        "Absurd! 😭",
+        "Receh! 💀",
+      ],
+      absurd: [
+        "Absurd! 😂",
+        "Random! 🤣",
+        "Gak nyambung! 😭",
+        "Chaos! 💀",
+        "Kocak! 🔥",
+      ],
+      random: [
+        "Random! 🎲",
+        "Unexpected! 😂",
+        "Plot twist! 🤣",
+        "Chaos! 💀",
+      ],
+      perfectcut: [
+        "Perfect cut! ✂️",
+        "Timing sempurna! ⏰",
+        "Cut di saat yang tepat! 😂",
       ],
       general: [
         "Cek ini! ",

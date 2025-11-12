@@ -20,26 +20,83 @@ const shouldUseAI = () => {
 };
 
 // Detect content category from title (with safe fallback)
-const detectCategory = (title: string | undefined | null): "meme" | "comedy" | "tutorial" | "motivasi" | "gaming" | "lifestyle" | "teknologi" | "kuliner" | "travel" | "music" | "sports" | "general" => {
+const detectCategory = (title: string | undefined | null, logger?: any): "meme" | "comedy" | "tutorial" | "motivasi" | "gaming" | "lifestyle" | "teknologi" | "kuliner" | "travel" | "music" | "sports" | "brainrot" | "absurd" | "random" | "perfectcut" | "general" => {
+  logger?.info('🔍 [detectCategory] Starting category detection...', { title });
+  
   // Safety: handle missing or empty title
   if (!title || typeof title !== 'string' || title.trim() === '') {
+    logger?.warn('⚠️ [detectCategory] Empty or invalid title, defaulting to "general"');
     return "general";
   }
   
   const titleLower = title.toLowerCase();
+  logger?.info('📝 [detectCategory] Normalized title:', { titleLower });
   
-  if (titleLower.match(/meme|lucu|ngakak|ketawa|🤣|😂/)) return "meme";
-  if (titleLower.match(/comedy|komedi|lawak|humor/)) return "comedy";
-  if (titleLower.match(/tutorial|cara|tips|belajar|how to/)) return "tutorial";
-  if (titleLower.match(/motivasi|inspirasi|semangat|sukses/)) return "motivasi";
-  if (titleLower.match(/game|gaming|ml|pubg|ff|freefire/)) return "gaming";
-  if (titleLower.match(/lifestyle|vlog|daily|ootd/)) return "lifestyle";
-  if (titleLower.match(/teknologi|tech|gadget|hp|smartphone/)) return "teknologi";
-  if (titleLower.match(/makanan|kuliner|food|makan/)) return "kuliner";
-  if (titleLower.match(/travel|jalan|wisata|liburan/)) return "travel";
-  if (titleLower.match(/musik|music|lagu|song/)) return "music";
-  if (titleLower.match(/olahraga|sport|fitness|gym/)) return "sports";
+  // Check new specific categories FIRST (before meme) to avoid false matches
+  if (titleLower.match(/brainrot|brain rot|brainrotmeme/)) {
+    logger?.info('✅ [detectCategory] Detected category: brainrot (NEW CATEGORY)');
+    return "brainrot";
+  }
+  if (titleLower.match(/perfect cut|perfectcut|perfectly cut|perfectlycut|timing/)) {
+    logger?.info('✅ [detectCategory] Detected category: perfectcut (NEW CATEGORY)');
+    return "perfectcut";
+  }
+  if (titleLower.match(/absurd|absur|chaos|receh/)) {
+    logger?.info('✅ [detectCategory] Detected category: absurd (NEW CATEGORY)');
+    return "absurd";
+  }
+  if (titleLower.match(/random|acak|unexpected/)) {
+    logger?.info('✅ [detectCategory] Detected category: random (NEW CATEGORY)');
+    return "random";
+  }
   
+  // Now check general categories
+  if (titleLower.match(/meme|lucu|ngakak|ketawa|🤣|😂/)) {
+    logger?.info('✅ [detectCategory] Detected category: meme');
+    return "meme";
+  }
+  if (titleLower.match(/comedy|komedi|lawak|humor/)) {
+    logger?.info('✅ [detectCategory] Detected category: comedy');
+    return "comedy";
+  }
+  if (titleLower.match(/tutorial|cara|tips|belajar|how to/)) {
+    logger?.info('✅ [detectCategory] Detected category: tutorial');
+    return "tutorial";
+  }
+  if (titleLower.match(/motivasi|inspirasi|semangat|sukses/)) {
+    logger?.info('✅ [detectCategory] Detected category: motivasi');
+    return "motivasi";
+  }
+  if (titleLower.match(/game|gaming|ml|pubg|ff|freefire/)) {
+    logger?.info('✅ [detectCategory] Detected category: gaming');
+    return "gaming";
+  }
+  if (titleLower.match(/lifestyle|vlog|daily|ootd/)) {
+    logger?.info('✅ [detectCategory] Detected category: lifestyle');
+    return "lifestyle";
+  }
+  if (titleLower.match(/teknologi|tech|gadget|hp|smartphone/)) {
+    logger?.info('✅ [detectCategory] Detected category: teknologi');
+    return "teknologi";
+  }
+  if (titleLower.match(/makanan|kuliner|food|makan/)) {
+    logger?.info('✅ [detectCategory] Detected category: kuliner');
+    return "kuliner";
+  }
+  if (titleLower.match(/travel|jalan|wisata|liburan/)) {
+    logger?.info('✅ [detectCategory] Detected category: travel');
+    return "travel";
+  }
+  if (titleLower.match(/musik|music|lagu|song/)) {
+    logger?.info('✅ [detectCategory] Detected category: music');
+    return "music";
+  }
+  if (titleLower.match(/olahraga|sport|fitness|gym/)) {
+    logger?.info('✅ [detectCategory] Detected category: sports');
+    return "sports";
+  }
+  
+  logger?.info('⚡ [detectCategory] No specific category matched, defaulting to "general"');
   return "general";
 };
 
@@ -69,7 +126,7 @@ const processMediaDirectly = async (inputData: any, mastra: any) => {
     // Validate and provide defaults for required inputs
     const safeTitle = inputData.title || 'Media upload';
     const safeDescription = inputData.description || '';
-    const category = detectCategory(safeTitle);
+    const category = detectCategory(safeTitle, logger);
     
     // Try to generate optimized caption and hashtags, but fall back to user input if it fails
     try {

@@ -19,6 +19,10 @@ export const generateTrendingHashtags = createTool({
       "travel",
       "music",
       "sports",
+      "brainrot",
+      "absurd",
+      "random",
+      "perfectcut",
       "general"
     ]).optional().default("general").describe("Content category"),
     language: z.enum(["id", "en", "both"]).optional().default("both").describe("Hashtag language preference"),
@@ -40,9 +44,9 @@ export const generateTrendingHashtags = createTool({
     // Trending hashtags per category (Indonesian + English)
     const categoryHashtags: Record<string, { id: string[], en: string[], universal: string[] }> = {
       meme: {
-        id: ["meme", "memelucu", "memeindonesia", "dagelan", "ngakak", "lucuabis", "ketawa"],
-        en: ["memes", "funnymemes", "dankmemes", "memesdaily", "lol", "funny"],
-        universal: ["viral", "trending", "fyp", "foryou", "foryoupage", "explore"],
+        id: ["memeindo", "memeabsurd", "memeindonesia", "randomvideo", "brainrot", "humorabsurd", "videolucu", "randompost", "perfectcut", "humorreceh", "ngakak", "ketawa"],
+        en: ["memes", "funnymemes", "absurdhumor", "brainrot", "randomvideos", "perfectcut", "dankmemes", "memesdaily"],
+        universal: ["reels", "video"],
       },
       comedy: {
         id: ["comedy", "lucu", "komedi", "humor", "ngakak", "kocak", "lawak"],
@@ -94,18 +98,36 @@ export const generateTrendingHashtags = createTool({
         en: ["sports", "fitness", "workout", "gym", "athlete", "training"],
         universal: ["fitnessmotivation", "sport", "healthy"],
       },
+      brainrot: {
+        id: ["brainrot", "brainrotmeme", "randomvideo", "absurd", "receh"],
+        en: ["brainrot", "brainrotmemes", "randomcontent"],
+        universal: ["reels"],
+      },
+      absurd: {
+        id: ["humorabsurd", "memeabsurd", "absurd", "kocak", "receh"],
+        en: ["absurdhumor", "absurdmemes", "randomhumor"],
+        universal: ["video"],
+      },
+      random: {
+        id: ["randomvideo", "randompost", "randomcontent", "videorandom"],
+        en: ["randomvideos", "randomcontent", "randomstuff"],
+        universal: ["reels"],
+      },
+      perfectcut: {
+        id: ["perfectcut", "perfectlycut", "videolucu", "cutperfect"],
+        en: ["perfectcut", "perfectlycutscreams", "perfectlycutvideo"],
+        universal: ["video"],
+      },
       general: {
-        id: ["viral", "trending", "keren", "seru", "asik", "indonesia"],
-        en: ["viral", "trending", "cool", "awesome", "amazing", "video"],
-        universal: ["fyp", "foryou", "foryoupage", "explore", "explorepage"],
+        id: ["video", "reels", "konten", "keren", "seru", "indonesia"],
+        en: ["video", "reels", "content", "cool", "awesome"],
+        universal: ["videolucu", "randomvideo"],
       },
     };
     
     // Global trending hashtags (always popular)
     const globalTrending = [
-      "viral", "trending", "fyp", "foryou", "foryoupage", 
-      "explore", "explorepage", "reels", "video", "videooftheday",
-      "instagood", "instagram", "facebook", "follow", "like",
+      "reels", "video", "videolucu", "randomvideo", "memeindo",
     ];
     
     const hashtagSet = new Set<string>();
