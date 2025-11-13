@@ -20,14 +20,19 @@ cleanup() {
     echo "🛑 Shutting down services..."
     kill $INNGEST_PID 2>/dev/null || true
     kill $MASTRA_PID 2>/dev/null || true
+    wait $INNGEST_PID 2>/dev/null || true
+    wait $MASTRA_PID 2>/dev/null || true
     exit 0
 }
 
 # Set trap for cleanup on SIGTERM and SIGINT
 trap cleanup SIGTERM SIGINT
 
-# Wait for either process to exit
-wait -n
+echo "✅ Services started successfully!"
+echo "📊 Inngest PID: $INNGEST_PID"
+echo "📊 Mastra PID: $MASTRA_PID"
+echo "⏳ Waiting for processes... (Press Ctrl+C to stop)"
 
-# If one exits, cleanup and exit
-cleanup
+# Wait for both processes to complete
+# This will keep the container running
+wait

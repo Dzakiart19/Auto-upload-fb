@@ -6,7 +6,7 @@
 
 ```bash
 git add .
-git commit -m "Fix Koyeb port configuration"
+git commit -m "Update production configuration for Koyeb"
 git push origin main
 ```
 
@@ -21,11 +21,15 @@ git push origin main
 - **Internal Port**: `8000`
 - **Protocol**: HTTP
 
-#### C. Health Checks
-- **HTTP Path**: `/health` ATAU `/ping`
+#### C. Health Checks (PENTING!)
+- **Enabled**: ✅ YES
+- **HTTP Path**: `/health`
 - **Port**: `8000`
-- **Initial delay**: `30` seconds (untuk memberikan waktu startup)
-- **Timeout**: `5` seconds
+- **Protocol**: HTTP
+- **Initial delay**: `60` seconds (beri waktu cukup untuk startup)
+- **Timeout**: `10` seconds
+- **Interval**: `30` seconds
+- **Unhealthy threshold**: `3`
 
 #### D. Environment Variables
 
@@ -33,32 +37,42 @@ Tambahkan **SEMUA** environment variables berikut:
 
 ```
 PORT=8000
-PUBLIC_URL=https://biological-malanie-dzeckyete-91da18c7.koyeb.app
+PUBLIC_URL=https://<your-app-name>.koyeb.app
 TELEGRAM_BOT_TOKEN=<your-telegram-bot-token>
 OPENAI_API_KEY=<your-openai-key>
 FB_PAGE_ID=<your-facebook-page-id>
 FB_ACCESS_TOKEN=<your-facebook-access-token>
+AUTO_WEBHOOK=true
 ```
 
 **PENTING**: 
+- Ganti `<your-app-name>` dengan nama app Koyeb Anda
 - Ganti nilai yang di dalam `<...>` dengan kredensial Anda!
-- **JANGAN set NODE_ENV** - biarkan kosong
+- **JANGAN set NODE_ENV** - biarkan kosong atau set ke `development`
+- **AUTO_WEBHOOK=true** akan otomatis set Telegram webhook saat startup
 - Inngest dev server akan berjalan otomatis di container (port 3000 internal)
 
 ### 3. Instance Settings
 
-- **Instance Type**: **Small** (minimum, karena build membutuhkan RAM)
-- **Regions**: Pilih region terdekat
-- **Scaling**: Auto (default)
+- **Instance Type**: **Small** atau **Medium** (Small minimal, Medium lebih stabil)
+- **Regions**: Pilih region terdekat dengan user (Frankfurt untuk EU, Singapore untuk Asia)
+- **Scaling**: 
+  - **Min instances**: 1
+  - **Max instances**: 1 (cukup untuk bot Telegram)
+  - **Auto-scaling**: Disabled (tidak perlu untuk bot)
 
 ### 4. Deploy
 
 1. Klik **Deploy** atau **Redeploy**
-2. Tunggu build selesai (2-5 menit)
+2. Tunggu build selesai (3-7 menit untuk first build)
 3. Cek logs untuk memastikan:
-   - ✅ "Telegram webhook berhasil di-set!"
-   - ✅ "Mastra API running on port http://0.0.0.0:8000/api"
-   - ✅ Tidak ada "TCP health check failed"
+   - ✅ "🚀 Starting Inngest Dev Server..."
+   - ✅ "🎬 Starting Mastra server..."
+   - ✅ "✅ Services started successfully!"
+   - ✅ "✅ Telegram webhook berhasil di-set!" (jika AUTO_WEBHOOK=true)
+   - ✅ "mastra 0.14.0-alpha.0 ready in XXXXms"
+   - ❌ TIDAK ADA "TCP health check failed"
+   - ❌ TIDAK ADA error messages
 
 ### 5. Verifikasi
 
