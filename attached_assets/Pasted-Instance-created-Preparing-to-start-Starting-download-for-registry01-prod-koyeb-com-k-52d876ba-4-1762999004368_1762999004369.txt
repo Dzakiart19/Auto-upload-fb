@@ -1,0 +1,91 @@
+Instance created. Preparing to start...
+Starting download for registry01.prod.koyeb.com/k-52d876ba-41d5-4c8c-8e13-18cfc19e8371/5c15bece-63c3-4d4d-8937-fe1494eb1a9d:085d1f18-1324-4847-88fb-84327815665b
+Download progress: 100% |[32m++++++++[0m| (18.7 MiB/s)
+🚀 Starting Inngest Dev Server...
+⏳ Waiting for Inngest server to be ready...
+{"time":"2025-11-13T01:52:22.062333668Z","level":"INFO","msg":"starting executor grpc server","svc":"executor","addr":":50053"}
+{"time":"2025-11-13T01:52:22.079203179Z","level":"INFO","msg":"service starting","caller":"devserver","service":"devserver"}
+{"time":"2025-11-13T01:52:22.079942819Z","level":"INFO","msg":"starting event stream","backend":"redis"}
+{"time":"2025-11-13T01:52:22.080010028Z","level":"INFO","msg":"service starting","caller":"runner","service":"runner"}
+{"time":"2025-11-13T01:52:22.080473428Z","level":"INFO","msg":"subscribing to events","topic":"events"}
+{"time":"2025-11-13T01:52:22.080832328Z","level":"INFO","msg":"service starting","caller":"executor","service":"executor"}
+{"time":"2025-11-13T01:52:22.080891548Z","level":"INFO","msg":"subscribing to function queue"}
+{"time":"2025-11-13T01:52:22.081469268Z","level":"INFO","msg":"service starting","caller":"api","service":"api"}
+{"time":"2025-11-13T01:52:22.081539319Z","level":"INFO","msg":"starting server","caller":"api","addr":"0.0.0.0:3000"}
+{"time":"2025-11-13T01:52:22.081886868Z","level":"INFO","msg":"autodiscovering locally hosted SDKs"}
+{"time":"2025-11-13T01:52:22.086518209Z","level":"INFO","msg":"service starting","caller":"connect-gateway","service":"connect-gateway"}
+{"time":"2025-11-13T01:52:22.086660269Z","level":"INFO","msg":"starting connect gateway grpc server","caller":"connect-gateway","addr":":50052"}
+Download complete for registry01.prod.koyeb.com/k-52d876ba-41d5-4c8c-8e13-18cfc19e8371/5c15bece-63c3-4d4d-8937-fe1494eb1a9d:085d1f18-1324-4847-88fb-84327815665b
+Instance is starting... Waiting for health checks to pass.
+🎬 Starting Mastra server...
+⏳ Waiting for Mastra to register with Inngest...
+✅ Services started successfully!
+📊 Inngest PID: 3
+📊 Mastra PID: 23
+⏳ Waiting for processes... (Press Ctrl+C to stop)
+{"level":"warn","time":"2025-11-13T01:52:42.857Z","name":"Mastra","msg":"Mastra telemetry is deprecated and will be removed on the Nov 4th release. Instead use AI Tracing. More info can be found here: https://github.com/mastra-ai/mastra/issues/8577 and here: https://mastra.ai/en/docs/observability/ai-tracing/overview"}
+{"level":"info","time":"2025-11-13T01:52:42.866Z","name":"Mastra","msg":"🚀 ========================================"}
+{"level":"info","time":"2025-11-13T01:52:42.866Z","name":"Mastra","msg":"🎬 Bot Telegram untuk Upload Video ke Facebook"}
+{"level":"info","time":"2025-11-13T01:52:42.866Z","name":"Mastra","msg":"🚀 ========================================"}
+{"level":"info","time":"2025-11-13T01:52:42.866Z","name":"Mastra","msg":"🌍 URL Publik AKTIF: https://favourite-christi-dzeckyete-cdeb36d1.koyeb.app"}
+{"level":"info","time":"2025-11-13T01:52:42.866Z","name":"Mastra","msg":"📡 Webhook Telegram: https://favourite-christi-dzeckyete-cdeb36d1.koyeb.app/webhooks/telegram/action"}
+{"level":"info","time":"2025-11-13T01:52:42.866Z","name":"Mastra","msg":"📊 Status Endpoint: https://favourite-christi-dzeckyete-cdeb36d1.koyeb.app/status"}
+{"level":"info","time":"2025-11-13T01:52:42.866Z","name":"Mastra","msg":"❤️  Keep-Alive: https://favourite-christi-dzeckyete-cdeb36d1.koyeb.app/ping"}
+{"level":"info","time":"2025-11-13T01:52:42.866Z","name":"Mastra","msg":"🚀 ========================================"}
+{"level":"info","time":"2025-11-13T01:52:42.866Z","name":"Mastra","msg":"📝 Setup Telegram Webhook:"}
+{"level":"info","time":"2025-11-13T01:52:42.866Z","name":"Mastra","msg":"   https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://favourite-christi-dzeckyete-cdeb36d1.koyeb.app/webhooks/telegram/action"}
+{"level":"info","time":"2025-11-13T01:52:42.866Z","name":"Mastra","msg":"📝 Verifikasi Webhook:"}
+{"level":"info","time":"2025-11-13T01:52:42.866Z","name":"Mastra","msg":"   https://api.telegram.org/bot<TOKEN>/getWebhookInfo"}
+{"level":"info","time":"2025-11-13T01:52:42.866Z","name":"Mastra","msg":"🚀 ========================================"}
+{"level":"info","time":"2025-11-13T01:52:42.866Z","name":"Mastra","msg":"🔄 Auto-setting Telegram webhook..."}
+{"level":"info","time":"2025-11-13T01:52:42.866Z","name":"Mastra","msg":"   Webhook URL: https://favourite-christi-dzeckyete-cdeb36d1.koyeb.app/webhooks/telegram/action"}
+{"level":"info","time":"2025-11-13T01:52:42.866Z","name":"Mastra","msg":"   Bot Token Length: 46 characters"}
+{"level":"info","time":"2025-11-13T01:52:43.031Z","name":"Mastra","msg":" Mastra API running on port http://0.0.0.0:8000/api"}
+{"level":"info","time":"2025-11-13T01:52:43.444Z","name":"Mastra","msg":"✅ Telegram webhook berhasil di-set!"}
+{"level":"info","time":"2025-11-13T01:52:43.444Z","name":"Mastra","msg":"   Webhook URL: https://favourite-christi-dzeckyete-cdeb36d1.koyeb.app/webhooks/telegram/action"}
+Instance is healthy. All health checks are passing.
+{"level":"info","time":"2025-11-13T01:52:43.744Z","name":"Mastra","url":"https://favourite-christi-dzeckyete-cdeb36d1.koyeb.app/webhooks/telegram/action","has_custom_certificate":false,"pending_update_count":0,"max_connections":40,"ip_address":"104.20.31.27","msg":"📊 Webhook Info:"}
+{"time":"2025-11-13T01:52:52.390923375Z","level":"INFO","msg":"apps synced, disabling auto-discovery"}
+{"level":"info","time":"2025-11-13T01:53:24.693Z","name":"Mastra","update_id":459856533,"message":{"message_id":604,"from":{"id":7390867903,"is_bot":false,"first_name":"Dzeck","username":"dzeckyete","language_code":"id"},"chat":{"id":7390867903,"first_name":"Dzeck","username":"dzeckyete","type":"private"},"date":1762998804,"text":"/start","entities":[{"offset":0,"length":6,"type":"bot_command"}]},"msg":"📝 [Telegram] payload"}
+{"level":"info","time":"2025-11-13T01:53:36.324Z","name":"Mastra","update_id":459856534,"message":{"message_id":606,"from":{"id":7390867903,"is_bot":false,"first_name":"Dzeck","username":"dzeckyete","language_code":"id"},"chat":{"id":7390867903,"first_name":"Dzeck","username":"dzeckyete","type":"private"},"date":1762998816,"forward_origin":{"type":"user","sender_user":{"id":7390867903,"is_bot":false,"first_name":"Dzeck","username":"dzeckyete","language_code":"id"},"date":1762979519},"forward_from":{"id":7390867903,"is_bot":false,"first_name":"Dzeck","username":"dzeckyete","language_code":"id"},"forward_date":1762979519,"photo":[{"file_id":"AgACAgUAAxkBAAIB-mkU7r9iRIT1JgfNmaUemzibsPwmAAIkDGsb-1ypVNBnJ6OXwJKtAQADAgADcwADNgQ","file_unique_id":"AQADJAxrG_tcqVR4","file_size":1247,"width":90,"height":70},{"file_id":"AgACAgUAAxkBAAIB-mkU7r9iRIT1JgfNmaUemzibsPwmAAIkDGsb-1ypVNBnJ6OXwJKtAQADAgADbQADNgQ","file_unique_id":"AQADJAxrG_tcqVRy","file_size":12720,"width":320,"height":249},{"file_id":"AgACAgUAAxkBAAIB-mkU7r9iRIT1JgfNmaUemzibsPwmAAIkDGsb-1ypVNBnJ6OXwJKtAQADAgADeAADNgQ","file_unique_id":"AQADJAxrG_tcqVR9","file_size":22745,"width":567,"height":441}]},"msg":"📝 [Telegram] payload"}
+{"level":"info","time":"2025-11-13T01:53:36.326Z","name":"Mastra","fileId":"AgACAgUAAxkBAAIB-mkU7r9iRIT1JgfNmaUemzibsPwmAAIkDGsb-1ypVNBnJ6OXwJKtAQADAgADeAADNgQ","fileSize":22745,"width":567,"height":441,"totalSizes":3,"msg":"📸 [Telegram] Photo received"}
+{"level":"info","time":"2025-11-13T01:53:40.057Z","name":"Mastra","update_id":459856535,"message":{"message_id":608,"from":{"id":7390867903,"is_bot":false,"first_name":"Dzeck","username":"dzeckyete","language_code":"id"},"chat":{"id":7390867903,"first_name":"Dzeck","username":"dzeckyete","type":"private"},"date":1762998819,"text":"Pp"},"msg":"📝 [Telegram] payload"}
+{"level":"info","time":"2025-11-13T01:53:40.059Z","name":"Mastra","fileKey":"7390867903-AgACAgUAAxkBAAIB-mkU7r9iRIT1JgfNmaUemzibsPwmAAIkDGsb-1ypVNBnJ6OXwJKtAQADAgADeAADNgQ","chatId":7390867903,"mediaType":"photo","msg":"🔒 [Telegram] Marking file as processing"}
+{"level":"info","time":"2025-11-13T01:53:40.455Z","name":"Mastra","chatId":7390867903,"fileId":"AgACAgUAAxkBAAIB-mkU7r9iRIT1JgfNmaUemzibsPwmAAIkDGsb-1ypVNBnJ6OXwJKtAQADAgADeAADNgQ","mediaType":"photo","msg":"🎯 [Telegram Trigger] Processing photo upload"}
+{"time":"2025-11-13T01:53:40.958128924Z","level":"INFO","msg":"publishing event","caller":"api","event_name":"workflow.facebook-video-workflow","internal_id":"01K9XEP7P89YN6TDBM0X18333D","external_id":"01K9XEP7P89YN6TDBM0X18333D","event":{"id":"01K9XEP7P89YN6TDBM0X18333D","name":"workflow.facebook-video-workflow","data":{"initialState":{},"inputData":{"chatId":7390867903,"description":"","fileId":"AgACAgUAAxkBAAIB-mkU7r9iRIT1JgfNmaUemzibsPwmAAIkDGsb-1ypVNBnJ6OXwJKtAQADAgADeAADNgQ","mediaType":"photo","threadId":"telegram-photo-7390867903-1762998820460","title":"Pp","userName":"dzeckyete"},"runId":"34da4c6f-ee21-4fa9-a2a0-dee4ef9b650f"},"ts":1762998820552}}
+{"time":"2025-11-13T01:53:41.772286994Z","level":"INFO","msg":"received event","event":"workflow.facebook-video-workflow","event_id":"01K9XEP7P89YN6TDBM0X18333D","internal_id":"01K9XEP7P89YN6TDBM0X18333D"}
+{"time":"2025-11-13T01:53:41.952772399Z","level":"INFO","msg":"initializing fn","event":"workflow.facebook-video-workflow","event_id":"01K9XEP7P89YN6TDBM0X18333D","internal_id":"01K9XEP7P89YN6TDBM0X18333D","function":"workflow.facebook-video-workflow","function_id":"99967783-19a0-502a-be8e-573f7aec9a92"}
+{"level":"info","time":"2025-11-13T01:53:49.257Z","name":"Mastra","hasUrl":false,"hasFileId":true,"msg":"🔀 [prepareMediaData] Routing workflow..."}
+{"level":"info","time":"2025-11-13T01:53:49.264Z","name":"Mastra","msg":"📤 [prepareMediaData] Manual upload flow detected, passing through..."}
+{"level":"info","time":"2025-11-13T01:53:49.264Z","name":"Mastra","hasFileId":true,"hasTitle":true,"hasDescription":false,"msg":"✅ [prepareMediaData] Manual upload validated"}
+{"level":"info","time":"2025-11-13T01:54:07.063Z","name":"Mastra","threadId":"telegram-photo-7390867903-1762998820460","chatId":7390867903,"mediaType":"photo","title":"Pp","msg":"🚀 [processMediaUpload] Starting photo upload process..."}
+{"level":"info","time":"2025-11-13T01:54:07.159Z","name":"Mastra","msg":"[AI] Mode: AI ACTIVE"}
+{"level":"info","time":"2025-11-13T01:54:07.160Z","name":"Mastra","msg":"[AI] OpenAI Key: Present"}
+{"level":"info","time":"2025-11-13T01:54:07.163Z","name":"Mastra","msg":"[AI] Fallback Enabled: default (false)"}
+{"level":"info","time":"2025-11-13T01:54:07.163Z","name":"Mastra","msg":"[AI] Is URL Flow: false"}
+{"level":"info","time":"2025-11-13T01:54:07.163Z","name":"Mastra","msg":"📝 [processMediaUpload] Calling AI agent to process photo..."}
+{"level":"error","time":"2025-11-13T01:54:37.365Z","name":"Mastra","err":{"type":"MastraError","message":"Failed after 3 attempts. Last error: You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.: Failed after 3 attempts. Last error: You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.","stack":"Error: Failed after 3 attempts. Last error: You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.\n    at MastraLLMV1.__text (file:///app/.mastra/output/mastra.mjs:60981:27)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async Agent.generateLegacy (file:///app/.mastra/output/mastra.mjs:62386:2141)\n    at async Object.execute (file:///app/.mastra/output/mastra.mjs:124338:24)\n    at async file:///app/.mastra/output/node_modules/@mastra/inngest/dist/index.js:1161:26\n    at async V1InngestExecution.tryExecuteStep (/app/.mastra/output/node_modules/inngest/components/execution/v1.js:221:20)\n    at async steps-found (/app/.mastra/output/node_modules/inngest/components/execution/v1.js:164:36)\n    at async V1InngestExecution._start (/app/.mastra/output/node_modules/inngest/components/execution/v1.js:107:36)\n    at async InngestCommHandler.handleAction (/app/.mastra/output/node_modules/inngest/components/InngestCommHandler.js:650:36)\n    at async ServerTiming.wrap (/app/.mastra/output/node_modules/inngest/helpers/ServerTiming.js:64:21)\ncaused by: AI_RetryError: Failed after 3 attempts. Last error: You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.\n    at _retryWithExponentialBackoff$1 (file:///app/.mastra/output/mastra.mjs:15657:13)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async fn (file:///app/.mastra/output/mastra.mjs:19301:32)\n    at async file:///app/.mastra/output/mastra.mjs:15838:22\n    at async MastraLLMV1.__text (file:///app/.mastra/output/mastra.mjs:60960:22)\n    at async Agent.generateLegacy (file:///app/.mastra/output/mastra.mjs:62386:2141)\n    at async Object.execute (file:///app/.mastra/output/mastra.mjs:124338:24)\n    at async file:///app/.mastra/output/node_modules/@mastra/inngest/dist/index.js:1161:26\n    at async V1InngestExecution.tryExecuteStep (/app/.mastra/output/node_modules/inngest/components/execution/v1.js:221:20)\n    at async steps-found (/app/.mastra/output/node_modules/inngest/components/execution/v1.js:164:36)","id":"LLM_GENERATE_TEXT_AI_SDK_EXECUTION_FAILED","domain":"LLM","category":"THIRD_PARTY","details":{"modelId":"gpt-4o","modelProvider":"openai.responses","runId":"d657e3db-0351-44af-862b-6468d0e83c7e","threadId":"telegram-photo-7390867903-1762998820460","resourceId":"telegram-bot"}},"msg":"❌ [processMediaUpload] Top-level error for photo:"}
+{"level":"error","time":"2025-11-13T01:54:37.373Z","name":"Mastra","msg":"Error: Failed after 3 attempts. Last error: You exceeded your current quota, please check your plan and billing details. For more information on this error, read the docs: https://platform.openai.com/docs/guides/error-codes/api-errors.\n    at MastraLLMV1.__text (file:///app/.mastra/output/mastra.mjs:60981:27)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async Agent.generateLegacy (file:///app/.mastra/output/mastra.mjs:62386:2141)\n    at async Object.execute (file:///app/.mastra/output/mastra.mjs:124338:24)\n    at async file:///app/.mastra/output/node_modules/@mastra/inngest/dist/index.js:1161:26\n    at async V1InngestExecution.tryExecuteStep (/app/.mastra/output/node_modules/inngest/components/execution/v1.js:221:20)\n    at async steps-found (/app/.mastra/output/node_modules/inngest/components/execution/v1.js:164:36)\n    at async V1InngestExecution._start (/app/.mastra/output/node_modules/inngest/components/execution/v1.js:107:36)\n    at async InngestCommHandler.handleAction (/app/.mastra/output/node_modules/inngest/components/InngestCommHandler.js:650:36)\n    at async ServerTiming.wrap (/app/.mastra/output/node_modules/inngest/helpers/ServerTiming.js:64:21)"}
+{"level":"info","time":"2025-11-13T01:54:37.374Z","name":"Mastra","chatId":7390867903,"messageLength":299,"msg":"🔧 [telegramSendMessage] Starting execution with params:"}
+{"level":"info","time":"2025-11-13T01:54:37.453Z","name":"Mastra","msg":"📝 [telegramSendMessage] Sending message to Telegram..."}
+{"level":"info","time":"2025-11-13T01:54:37.453Z","name":"Mastra","msg":46}
+{"level":"info","time":"2025-11-13T01:54:39.365Z","name":"Mastra","messageId":610,"msg":"✅ [telegramSendMessage] Message sent successfully:"}
+{"level":"info","time":"2025-11-13T01:54:41.174Z","name":"Mastra","update_id":459856535,"message":{"message_id":608,"from":{"id":7390867903,"is_bot":false,"first_name":"Dzeck","username":"dzeckyete","language_code":"id"},"chat":{"id":7390867903,"first_name":"Dzeck","username":"dzeckyete","type":"private"},"date":1762998819,"text":"Pp"},"msg":"📝 [Telegram] payload"}
+{"level":"warn","time":"2025-11-13T01:54:41.276Z","name":"Mastra","fileKey":"7390867903-AgACAgUAAxkBAAIB-mkU7r9iRIT1JgfNmaUemzibsPwmAAIkDGsb-1ypVNBnJ6OXwJKtAQADAgADeAADNgQ","chatId":7390867903,"mediaType":"photo","elapsedTime":"61s","msg":"⚠️ [Telegram] Duplicate request detected dan diabaikan"}
+Application exited with code 255
+Instance is unhealthy. Attempting recovery...
+Instance is healthy. All health checks are passing.
+🚀 Starting Inngest Dev Server...
+⏳ Waiting for Inngest server to be ready...
+{"time":"2025-11-13T01:55:51.425854199Z","level":"INFO","msg":"starting executor grpc server","svc":"executor","addr":":50053"}
+{"time":"2025-11-13T01:55:51.443299879Z","level":"INFO","msg":"service starting","caller":"devserver","service":"devserver"}
+{"time":"2025-11-13T01:55:51.444064809Z","level":"INFO","msg":"starting event stream","backend":"redis"}
+{"time":"2025-11-13T01:55:51.444158319Z","level":"INFO","msg":"service starting","caller":"runner","service":"runner"}
+{"time":"2025-11-13T01:55:51.444676329Z","level":"INFO","msg":"subscribing to events","topic":"events"}
+{"time":"2025-11-13T01:55:51.445029819Z","level":"INFO","msg":"service starting","caller":"executor","service":"executor"}
+{"time":"2025-11-13T01:55:51.445101819Z","level":"INFO","msg":"subscribing to function queue"}
+{"time":"2025-11-13T01:55:51.44600759Z","level":"INFO","msg":"service starting","caller":"api","service":"api"}
+{"time":"2025-11-13T01:55:51.44608283Z","level":"INFO","msg":"starting server","caller":"api","addr":"0.0.0.0:3000"}
+{"time":"2025-11-13T01:55:51.44630207Z","level":"INFO","msg":"autodiscovering locally hosted SDKs"}
+{"time":"2025-11-13T01:55:51.45123777Z","level":"INFO","msg":"service starting","caller":"connect-gateway","service":"connect-gateway"}
+{"time":"2025-11-13T01:55:51.451622719Z","level":"INFO","msg":"starting connect gateway grpc server","caller":"connect-gateway","addr":":50052"}

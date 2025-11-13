@@ -43,6 +43,7 @@ OPENAI_API_KEY=<your-openai-key>
 FB_PAGE_ID=<your-facebook-page-id>
 FB_ACCESS_TOKEN=<your-facebook-access-token>
 AUTO_WEBHOOK=true
+AI_FALLBACK_ENABLED=true
 ```
 
 **PENTING**: 
@@ -50,6 +51,9 @@ AUTO_WEBHOOK=true
 - Ganti nilai yang di dalam `<...>` dengan kredensial Anda!
 - **JANGAN set NODE_ENV** - biarkan kosong atau set ke `development`
 - **AUTO_WEBHOOK=true** akan otomatis set Telegram webhook saat startup
+- **AI_FALLBACK_ENABLED=true** akan bypass AI jika OpenAI quota habis (RECOMMENDED!)
+  - Set ke `false` jika ingin pakai AI mode (perlu OpenAI API quota cukup)
+  - Set ke `true` untuk mode fallback (langsung pakai tools tanpa AI)
 - Inngest dev server akan berjalan otomatis di container (port 3000 internal)
 
 ### 3. Instance Settings

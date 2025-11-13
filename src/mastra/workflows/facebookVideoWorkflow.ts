@@ -644,7 +644,7 @@ Berikan saya ringkasan hasil akhir dari semua langkah tersebut.
         shareResults: {
           totalGroups: totalMatch ? parseInt(totalMatch[1]) : 0,
           successCount: successMatch ? parseInt(successMatch[1]) : 0,
-          failMatch: failMatch ? parseInt(failMatch[1]) : 0,
+          failCount: failMatch ? parseInt(failMatch[1]) : 0,
         },
         message: responseText,
       };
