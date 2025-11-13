@@ -520,36 +520,36 @@ const processMediaUpload = createStep({
     const logger = mastra?.getLogger();
     const mediaType = inputData.mediaType || 'video';
     
-    logger?.info(`🚀 [processMediaUpload] Starting ${mediaType} upload process...`, {
-      threadId: inputData.threadId,
-      chatId: inputData.chatId,
-      mediaType: mediaType,
-      title: inputData.title,
-    });
-    
-    // Check AI availability
-    const hasOpenAIKey = !!process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim() !== '';
-    const useAI = hasOpenAIKey && process.env.AI_FALLBACK_ENABLED !== 'true';
-    const isUrlFlow = inputData.isUrlFlow || false;
-    
-    logger?.info(`[AI] Mode: ${useAI ? 'AI ACTIVE' : 'FALLBACK (Direct Tools)'}`);
-    logger?.info(`[AI] OpenAI Key: ${hasOpenAIKey ? 'Present' : 'Missing'}`);
-    logger?.info(`[AI] Fallback Enabled: ${process.env.AI_FALLBACK_ENABLED || 'default (false)'}`);
-    logger?.info(`[AI] Is URL Flow: ${isUrlFlow}`);
-    
-    // IMPORTANT: URL flow MUST use direct tools to preserve source metadata (TikTok/Instagram)
-    // AI mode would regenerate captions/hashtags which violates user requirement
-    if (!useAI || !hasOpenAIKey || isUrlFlow) {
-      if (isUrlFlow) {
-        logger?.info("🔗 URL flow detected - bypassing AI to preserve source metadata (TikTok/Instagram)");
-      } else {
-        logger?.info("⚠️ AI sedang offline atau dinonaktifkan, menggunakan mode fallback");
-      }
-      return await processMediaDirectly(inputData, mastra);
-    }
-    
-    // Try AI mode with fallback on error
     try {
+      logger?.info(`🚀 [processMediaUpload] Starting ${mediaType} upload process...`, {
+        threadId: inputData.threadId,
+        chatId: inputData.chatId,
+        mediaType: mediaType,
+        title: inputData.title,
+      });
+      
+      // Check AI availability
+      const hasOpenAIKey = !!process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim() !== '';
+      const useAI = hasOpenAIKey && process.env.AI_FALLBACK_ENABLED !== 'true';
+      const isUrlFlow = inputData.isUrlFlow || false;
+      
+      logger?.info(`[AI] Mode: ${useAI ? 'AI ACTIVE' : 'FALLBACK (Direct Tools)'}`);
+      logger?.info(`[AI] OpenAI Key: ${hasOpenAIKey ? 'Present' : 'Missing'}`);
+      logger?.info(`[AI] Fallback Enabled: ${process.env.AI_FALLBACK_ENABLED || 'default (false)'}`);
+      logger?.info(`[AI] Is URL Flow: ${isUrlFlow}`);
+      
+      // IMPORTANT: URL flow MUST use direct tools to preserve source metadata (TikTok/Instagram)
+      // AI mode would regenerate captions/hashtags which violates user requirement
+      if (!useAI || !hasOpenAIKey || isUrlFlow) {
+        if (isUrlFlow) {
+          logger?.info("🔗 URL flow detected - bypassing AI to preserve source metadata (TikTok/Instagram)");
+        } else {
+          logger?.info("⚠️ AI sedang offline atau dinonaktifkan, menggunakan mode fallback");
+        }
+        return await processMediaDirectly(inputData, mastra);
+      }
+      
+      // Try AI mode with fallback on error
       const prompt = mediaType === 'photo' 
         ? `
 Saya memiliki foto dari Telegram yang perlu di-upload ke Facebook Page.
@@ -644,17 +644,38 @@ Berikan saya ringkasan hasil akhir dari semua langkah tersebut.
         shareResults: {
           totalGroups: totalMatch ? parseInt(totalMatch[1]) : 0,
           successCount: successMatch ? parseInt(successMatch[1]) : 0,
-          failCount: failMatch ? parseInt(failMatch[1]) : 0,
+          failMatch: failMatch ? parseInt(failMatch[1]) : 0,
         },
         message: responseText,
       };
-      
     } catch (error: any) {
-      logger?.error(`❌ [processMediaUpload] AI Error for ${mediaType}, switching to fallback:`, error.message);
-      logger?.warn("⚠️ Beralih ke mode fallback karena AI error");
+      logger?.error(`❌ [processMediaUpload] Top-level error for ${mediaType}:`, error);
+      logger?.error('Error stack:', error.stack);
       
-      // Fallback to direct processing if AI fails
-      return await processMediaDirectly(inputData, mastra);
+      // Send error notification to user
+      try {
+        await telegramSendMessage.execute({
+          context: {
+            chatId: inputData.chatId,
+            message: `❌ *Maaf, terjadi error sistem*\n\n${error.message}\n\nSilakan coba lagi atau hubungi admin.`
+          },
+          mastra,
+          runtimeContext: {} as any
+        });
+      } catch (notifError) {
+        logger?.error("❌ Failed to send error notification:", notifError);
+      }
+      
+      // Return error result
+      return {
+        success: false,
+        shareResults: {
+          totalGroups: 0,
+          successCount: 0,
+          failCount: 0,
+        },
+        message: `Error: ${error.message}`
+      };
     }
   },
 });

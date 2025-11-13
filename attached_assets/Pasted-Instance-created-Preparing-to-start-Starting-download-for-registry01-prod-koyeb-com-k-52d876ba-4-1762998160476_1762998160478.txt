@@ -1,0 +1,75 @@
+Instance created. Preparing to start...
+Starting download for registry01.prod.koyeb.com/k-52d876ba-41d5-4c8c-8e13-18cfc19e8371/5c15bece-63c3-4d4d-8937-fe1494eb1a9d:ef10fb33-26d9-4612-b66f-d9fefc6d08a1
+Download progress: 100% |[32m++++++++[0m| (100.8 MiB/s)
+Download complete for registry01.prod.koyeb.com/k-52d876ba-41d5-4c8c-8e13-18cfc19e8371/5c15bece-63c3-4d4d-8937-fe1494eb1a9d:ef10fb33-26d9-4612-b66f-d9fefc6d08a1
+🚀 Starting Inngest Dev Server...
+⏳ Waiting for Inngest server to be ready...
+Instance is starting... Waiting for health checks to pass.
+{"time":"2025-11-13T01:33:25.277577877Z","level":"INFO","msg":"starting executor grpc server","svc":"executor","addr":":50053"}
+{"time":"2025-11-13T01:33:25.290268958Z","level":"INFO","msg":"service starting","caller":"devserver","service":"devserver"}
+{"time":"2025-11-13T01:33:25.291679347Z","level":"INFO","msg":"starting event stream","backend":"redis"}
+{"time":"2025-11-13T01:33:25.291776307Z","level":"INFO","msg":"service starting","caller":"runner","service":"runner"}
+{"time":"2025-11-13T01:33:25.292068447Z","level":"INFO","msg":"subscribing to events","topic":"events"}
+{"time":"2025-11-13T01:33:25.292563898Z","level":"INFO","msg":"service starting","caller":"executor","service":"executor"}
+{"time":"2025-11-13T01:33:25.292596058Z","level":"INFO","msg":"subscribing to function queue"}
+{"time":"2025-11-13T01:33:25.293368367Z","level":"INFO","msg":"service starting","caller":"api","service":"api"}
+{"time":"2025-11-13T01:33:25.293401707Z","level":"INFO","msg":"starting server","caller":"api","addr":"0.0.0.0:3000"}
+{"time":"2025-11-13T01:33:25.293551138Z","level":"INFO","msg":"autodiscovering locally hosted SDKs"}
+{"time":"2025-11-13T01:33:25.302216378Z","level":"INFO","msg":"service starting","caller":"connect-gateway","service":"connect-gateway"}
+{"time":"2025-11-13T01:33:25.302406188Z","level":"INFO","msg":"starting connect gateway grpc server","caller":"connect-gateway","addr":":50052"}
+🎬 Starting Mastra server...
+⏳ Waiting for Mastra to register with Inngest...
+✅ Services started successfully!
+📊 Inngest PID: 3
+📊 Mastra PID: 23
+⏳ Waiting for processes... (Press Ctrl+C to stop)
+{"level":"warn","time":"2025-11-13T01:33:45.292Z","name":"Mastra","msg":"Mastra telemetry is deprecated and will be removed on the Nov 4th release. Instead use AI Tracing. More info can be found here: https://github.com/mastra-ai/mastra/issues/8577 and here: https://mastra.ai/en/docs/observability/ai-tracing/overview"}
+{"level":"info","time":"2025-11-13T01:33:45.301Z","name":"Mastra","msg":"🚀 ========================================"}
+{"level":"info","time":"2025-11-13T01:33:45.301Z","name":"Mastra","msg":"🎬 Bot Telegram untuk Upload Video ke Facebook"}
+{"level":"info","time":"2025-11-13T01:33:45.301Z","name":"Mastra","msg":"🚀 ========================================"}
+{"level":"info","time":"2025-11-13T01:33:45.301Z","name":"Mastra","msg":"🌍 URL Publik AKTIF: https://favourite-christi-dzeckyete-cdeb36d1.koyeb.app"}
+{"level":"info","time":"2025-11-13T01:33:45.301Z","name":"Mastra","msg":"📡 Webhook Telegram: https://favourite-christi-dzeckyete-cdeb36d1.koyeb.app/webhooks/telegram/action"}
+{"level":"info","time":"2025-11-13T01:33:45.301Z","name":"Mastra","msg":"📊 Status Endpoint: https://favourite-christi-dzeckyete-cdeb36d1.koyeb.app/status"}
+{"level":"info","time":"2025-11-13T01:33:45.301Z","name":"Mastra","msg":"❤️  Keep-Alive: https://favourite-christi-dzeckyete-cdeb36d1.koyeb.app/ping"}
+{"level":"info","time":"2025-11-13T01:33:45.301Z","name":"Mastra","msg":"🚀 ========================================"}
+{"level":"info","time":"2025-11-13T01:33:45.301Z","name":"Mastra","msg":"📝 Setup Telegram Webhook:"}
+{"level":"info","time":"2025-11-13T01:33:45.301Z","name":"Mastra","msg":"   https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://favourite-christi-dzeckyete-cdeb36d1.koyeb.app/webhooks/telegram/action"}
+{"level":"info","time":"2025-11-13T01:33:45.301Z","name":"Mastra","msg":"📝 Verifikasi Webhook:"}
+{"level":"info","time":"2025-11-13T01:33:45.301Z","name":"Mastra","msg":"   https://api.telegram.org/bot<TOKEN>/getWebhookInfo"}
+{"level":"info","time":"2025-11-13T01:33:45.301Z","name":"Mastra","msg":"🚀 ========================================"}
+{"level":"info","time":"2025-11-13T01:33:45.301Z","name":"Mastra","msg":"🔄 Auto-setting Telegram webhook..."}
+{"level":"info","time":"2025-11-13T01:33:45.301Z","name":"Mastra","msg":"   Webhook URL: https://favourite-christi-dzeckyete-cdeb36d1.koyeb.app/webhooks/telegram/action"}
+{"level":"info","time":"2025-11-13T01:33:45.301Z","name":"Mastra","msg":"   Bot Token Length: 46 characters"}
+{"level":"info","time":"2025-11-13T01:33:45.746Z","name":"Mastra","msg":" Mastra API running on port http://0.0.0.0:8000/api"}
+{"level":"info","time":"2025-11-13T01:33:46.105Z","name":"Mastra","msg":"✅ Telegram webhook berhasil di-set!"}
+{"level":"info","time":"2025-11-13T01:33:46.115Z","name":"Mastra","msg":"   Webhook URL: https://favourite-christi-dzeckyete-cdeb36d1.koyeb.app/webhooks/telegram/action"}
+{"level":"info","time":"2025-11-13T01:33:46.567Z","name":"Mastra","url":"https://favourite-christi-dzeckyete-cdeb36d1.koyeb.app/webhooks/telegram/action","has_custom_certificate":false,"pending_update_count":0,"last_error_date":1762997307,"last_error_message":"Read timeout expired","max_connections":40,"ip_address":"172.66.172.174","msg":"📊 Webhook Info:"}
+Instance is healthy. All health checks are passing.
+{"time":"2025-11-13T01:33:55.952403311Z","level":"INFO","msg":"apps synced, disabling auto-discovery"}
+{"level":"info","time":"2025-11-13T01:34:20.502Z","name":"Mastra","update_id":459856531,"message":{"message_id":599,"from":{"id":7390867903,"is_bot":false,"first_name":"Dzeck","username":"dzeckyete","language_code":"id"},"chat":{"id":7390867903,"first_name":"Dzeck","username":"dzeckyete","type":"private"},"date":1762997660,"text":"/start","entities":[{"offset":0,"length":6,"type":"bot_command"}]},"msg":"📝 [Telegram] payload"}
+{"level":"info","time":"2025-11-13T01:34:40.890Z","name":"Mastra","update_id":459856532,"message":{"message_id":601,"from":{"id":7390867903,"is_bot":false,"first_name":"Dzeck","username":"dzeckyete","language_code":"id"},"chat":{"id":7390867903,"first_name":"Dzeck","username":"dzeckyete","type":"private"},"date":1762997680,"forward_origin":{"type":"user","sender_user":{"id":7390867903,"is_bot":false,"first_name":"Dzeck","username":"dzeckyete","language_code":"id"},"date":1762991042},"forward_from":{"id":7390867903,"is_bot":false,"first_name":"Dzeck","username":"dzeckyete","language_code":"id"},"forward_date":1762991042,"text":"https://vt.tiktok.com/ZSynrwyYM/","entities":[{"offset":0,"length":32,"type":"url"}],"link_preview_options":{"url":"https://vt.tiktok.com/ZSynrwyYM/"}},"msg":"📝 [Telegram] payload"}
+{"level":"info","time":"2025-11-13T01:34:40.977Z","name":"Mastra","text":"https://vt.tiktok.com/ZSynrwyYM/","msg":"🔍 [Telegram] Checking for TikTok/Instagram URLs in text..."}
+{"level":"info","time":"2025-11-13T01:34:40.997Z","name":"Mastra","chatId":7390867903,"userName":"dzeckyete","originalText":"https://vt.tiktok.com/ZSynrwyYM/","extractedUrl":"https://vt.tiktok.com/ZSynrwyYM/","msg":"🎯 [Telegram] TikTok URL detected in message"}
+{"level":"info","time":"2025-11-13T01:34:40.998Z","name":"Mastra","urlKey":"7390867903-https://vt.tiktok.com/ZSynrwyYM/","chatId":7390867903,"platform":"TikTok","msg":"🔒 [Telegram] Marking URL as processing (lock will auto-expire in 300s)"}
+{"level":"info","time":"2025-11-13T01:34:44.596Z","name":"Mastra","platform":"TikTok","url":"https://vt.tiktok.com/ZSynrwyYM/","msg":"🚀 [Telegram] Triggering workflow with URL type"}
+{"level":"info","time":"2025-11-13T01:34:44.780Z","name":"Mastra","chatId":7390867903,"mediaType":"video","msg":"🎯 [Telegram Trigger] Processing video upload"}
+{"time":"2025-11-13T01:34:47.2791238Z","level":"INFO","msg":"publishing event","caller":"api","event_name":"workflow.facebook-video-workflow","internal_id":"01K9XDKJYCEWXZDXJJESMM3TE9","external_id":"01K9XDKJYCEWXZDXJJESMM3TE9","event":{"id":"01K9XDKJYCEWXZDXJJESMM3TE9","name":"workflow.facebook-video-workflow","data":{"initialState":{},"inputData":{"chatId":7390867903,"mediaType":"video","threadId":"telegram-video-7390867903-1762997684781","url":"https://vt.tiktok.com/ZSynrwyYM/","userName":"dzeckyete"},"runId":"dfd25253-4171-48cb-ac61-c67d9d2b3f3c"},"ts":1762997685196}}
+{"time":"2025-11-13T01:34:48.281053673Z","level":"INFO","msg":"received event","event":"workflow.facebook-video-workflow","event_id":"01K9XDKJYCEWXZDXJJESMM3TE9","internal_id":"01K9XDKJYCEWXZDXJJESMM3TE9"}
+{"time":"2025-11-13T01:34:48.301433464Z","level":"INFO","msg":"initializing fn","event":"workflow.facebook-video-workflow","event_id":"01K9XDKJYCEWXZDXJJESMM3TE9","internal_id":"01K9XDKJYCEWXZDXJJESMM3TE9","function":"workflow.facebook-video-workflow","function_id":"99967783-19a0-502a-be8e-573f7aec9a92"}
+{"level":"info","time":"2025-11-13T01:35:41.082Z","name":"Mastra","update_id":459856532,"message":{"message_id":601,"from":{"id":7390867903,"is_bot":false,"first_name":"Dzeck","username":"dzeckyete","language_code":"id"},"chat":{"id":7390867903,"first_name":"Dzeck","username":"dzeckyete","type":"private"},"date":1762997680,"forward_origin":{"type":"user","sender_user":{"id":7390867903,"is_bot":false,"first_name":"Dzeck","username":"dzeckyete","language_code":"id"},"date":1762991042},"forward_from":{"id":7390867903,"is_bot":false,"first_name":"Dzeck","username":"dzeckyete","language_code":"id"},"forward_date":1762991042,"text":"https://vt.tiktok.com/ZSynrwyYM/","entities":[{"offset":0,"length":32,"type":"url"}],"link_preview_options":{"url":"https://vt.tiktok.com/ZSynrwyYM/"}},"msg":"📝 [Telegram] payload"}
+{"level":"info","time":"2025-11-13T01:35:41.101Z","name":"Mastra","text":"https://vt.tiktok.com/ZSynrwyYM/","msg":"🔍 [Telegram] Checking for TikTok/Instagram URLs in text..."}
+{"level":"info","time":"2025-11-13T01:35:41.189Z","name":"Mastra","chatId":7390867903,"userName":"dzeckyete","originalText":"https://vt.tiktok.com/ZSynrwyYM/","extractedUrl":"https://vt.tiktok.com/ZSynrwyYM/","msg":"🎯 [Telegram] TikTok URL detected in message"}
+{"level":"warn","time":"2025-11-13T01:35:41.197Z","name":"Mastra","urlKey":"7390867903-https://vt.tiktok.com/ZSynrwyYM/","chatId":7390867903,"platform":"TikTok","url":"https://vt.tiktok.com/ZSynrwyYM/","elapsedTime":"60s","msg":"⚠️ [Telegram] Duplicate URL request detected dan diabaikan"}
+{"level":"info","time":"2025-11-13T01:35:48.190Z","name":"Mastra","hasUrl":true,"hasFileId":false,"msg":"🔀 [prepareMediaData] Routing workflow..."}
+{"level":"info","time":"2025-11-13T01:35:48.289Z","name":"Mastra","msg":"🔗 [prepareMediaData] URL flow detected, downloading from URL..."}
+{"level":"info","time":"2025-11-13T01:35:48.377Z","name":"Mastra","msg":"📱 [prepareMediaData] Platform detected: TikTok"}
+{"level":"info","time":"2025-11-13T01:35:48.379Z","name":"Mastra","msg":"📥 [prepareMediaData] Downloading from TikTok..."}
+{"level":"info","time":"2025-11-13T01:35:48.486Z","name":"Mastra","url":"https://vt.tiktok.com/ZSynrwyYM/","msg":"🔧 [tiktokDownload] Starting TikTok download with params:"}
+{"level":"info","time":"2025-11-13T01:35:48.487Z","name":"Mastra","msg":"📝 [tiktokDownload] Fetching TikTok metadata..."}
+{"level":"info","time":"2025-11-13T01:35:57.489Z","name":"Mastra","author":"B.A.Y.U","description":"old meme #ewinghd #ewing #penampakan #penampakanwajahhitam #erickolim","type":"video","msg":"✅ [tiktokDownload] Metadata fetched:"}
+{"level":"info","time":"2025-11-13T01:35:57.595Z","name":"Mastra","title":"old meme #ewinghd #ewing #penampakan #penampakanwa","hashtagCount":5,"author":"B.A.Y.U","msg":"📝 [tiktokDownload] Extracted metadata:"}
+{"level":"info","time":"2025-11-13T01:35:57.595Z","name":"Mastra","msg":"https://tikcdn.io/ssstik/7570956119342845204?st=GuLPkx-0jL8zS5uEGf0KSA&e=1763019354"}
+{"level":"info","time":"2025-11-13T01:36:02.097Z","name":"Mastra","filePath":"/tmp/tiktok_videos/tiktok_1762997757689.mp4","fileSize":"1.05 MB","msg":"✅ [tiktokDownload] Video downloaded successfully:"}
+{"level":"info","time":"2025-11-13T01:36:02.198Z","name":"Mastra","filePath":"/tmp/tiktok_videos/tiktok_1762997757689.mp4","fileSize":1100267,"title":"old meme #ewinghd #ewing #penampakan #penampakanwa","platform":"TikTok","msg":"✅ [prepareMediaData] Download successful!"}
+{"level":"info","time":"2025-11-13T01:36:02.200Z","name":"Mastra","title":"old meme #ewinghd #ewing #penampakan #penampakanwa","descriptionLength":69,"hasCaption":true,"msg":"✅ [prepareMediaData] Merged metadata:"}
+{"level":"info","time":"2025-11-13T01:36:57.898Z","name":"Mastra","threadId":"telegram-video-7390867903-1762997684781","chatId":7390867903,"mediaType":"video","title":"old meme #ewinghd #ewing #penampakan #penampakanwajahhitam #erickolim","msg":"🚀 [processMediaUpload] Starting video upload process..."}
