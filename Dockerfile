@@ -15,11 +15,16 @@ COPY . .
 # Build Mastra application
 RUN npm run build
 
-# Expose port (Koyeb will set PORT via env var)
-EXPOSE 8000
+# Copy start script
+COPY scripts/start-production.sh ./scripts/
+RUN chmod +x ./scripts/start-production.sh
 
-# Set environment variables
-ENV NODE_ENV=production
+# Expose ports (8000 for Mastra, 3000 for Inngest)
+EXPOSE 8000 3000
 
-# Start command
-CMD ["npx", "mastra", "start"]
+# Set environment variables - DO NOT set NODE_ENV=production
+# to allow Inngest dev mode
+ENV INNGEST_PORT=3000
+
+# Start both Mastra and Inngest dev server
+CMD ["./scripts/start-production.sh"]

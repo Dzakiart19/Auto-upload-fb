@@ -43,7 +43,8 @@ FB_ACCESS_TOKEN=<your-facebook-access-token>
 - Ganti `https://your-app-name.koyeb.app` dengan URL Koyeb Anda yang sebenarnya!
 - PORT harus 8000 (default Koyeb health check port)
 - Health check path: `/health` atau `/ping`
-- **JANGAN set NODE_ENV=production** (biarkan kosong agar Inngest berjalan dengan benar)
+- **JANGAN set NODE_ENV** - biarkan kosong
+- Docker container akan otomatis menjalankan Inngest dev server (internal) + Mastra server
 
 Tambahkan juga environment variables lain yang dibutuhkan aplikasi Anda.
 

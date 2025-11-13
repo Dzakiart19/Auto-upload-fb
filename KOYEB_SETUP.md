@@ -42,7 +42,8 @@ FB_ACCESS_TOKEN=<your-facebook-access-token>
 
 **PENTING**: 
 - Ganti nilai yang di dalam `<...>` dengan kredensial Anda!
-- **JANGAN set NODE_ENV=production** - biarkan kosong agar workflow berjalan dengan benar
+- **JANGAN set NODE_ENV** - biarkan kosong
+- Inngest dev server akan berjalan otomatis di container (port 3000 internal)
 
 ### 3. Instance Settings
 
@@ -107,6 +108,17 @@ Cek logs untuk error messages. Biasanya karena:
 Pastikan:
 - `PUBLIC_URL` sudah diset ke URL Koyeb yang benar
 - `TELEGRAM_BOT_TOKEN` valid dan benar
+
+### Workflow Tidak Jalan?
+
+Di logs Anda seharusnya melihat:
+```
+🚀 Starting Inngest Dev Server...
+⏳ Waiting for Inngest server to be ready...
+🎬 Starting Mastra server...
+```
+
+Jika tidak muncul, berarti startup script gagal.
 
 ## 📊 Monitoring
 
