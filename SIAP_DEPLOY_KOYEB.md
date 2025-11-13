@@ -34,9 +34,23 @@ npx mastra start &
 sleep 5   # Wait for registration
 ```
 
-### 2. Update Dokumentasi
+### 2. Install FFmpeg di Docker (`Dockerfile`)
+
+**MASALAH:** Error saat konversi video: `ffmpeg: not found`  
+**SOLUSI:** Install FFmpeg di Docker container
+
+```dockerfile
+# ADDED:
+RUN apt-get update && apt-get install -y \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+```
+
+### 3. Update Dokumentasi
 - ✅ `KOYEB_SETUP.md` - Panduan lengkap deployment
 - ✅ `PENJELASAN_DUPLICATE_URL.md` - Penjelasan fitur duplicate detection
+- ✅ `TROUBLESHOOTING_WORKFLOW.md` - Fix workflow tidak execute
+- ✅ `FIX_FFMPEG_ERROR.md` - Fix FFmpeg error
 - ✅ `SIAP_DEPLOY_KOYEB.md` - File ini
 
 ## 🔍 Tentang Log Error yang Anda Alami
