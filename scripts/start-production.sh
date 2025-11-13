@@ -2,18 +2,22 @@
 set -e
 
 echo "🚀 Starting Inngest Dev Server..."
-# Start Inngest dev server in background
-npx inngest-cli dev --host 0.0.0.0 --port 3000 --no-discovery &
+# Start Inngest dev server in background with auto-discovery
+npx inngest-cli dev --host 0.0.0.0 --port 3000 &
 INNGEST_PID=$!
 
-# Wait for Inngest to be ready
+# Wait longer for Inngest to be fully ready
 echo "⏳ Waiting for Inngest server to be ready..."
-sleep 5
+sleep 10
 
 echo "🎬 Starting Mastra server..."
-# Start Mastra (will connect to local Inngest)
+# Start Mastra (will connect to local Inngest and auto-register functions)
 npx mastra start &
 MASTRA_PID=$!
+
+# Wait additional time for Mastra to register with Inngest
+echo "⏳ Waiting for Mastra to register with Inngest..."
+sleep 5
 
 # Function to cleanup on exit
 cleanup() {

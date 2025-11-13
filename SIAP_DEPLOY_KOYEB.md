@@ -3,7 +3,9 @@
 ## 📦 Perubahan yang Sudah Dilakukan
 
 ### 1. Fix Script Startup (`scripts/start-production.sh`)
-**MASALAH:** Instance stopping setelah workflow triggered
+
+#### Problem 1: Instance Stopping
+**MASALAH:** Instance stopping setelah workflow triggered  
 **SOLUSI:** Ganti `wait -n` dengan `wait` untuk menunggu semua process
 
 ```bash
@@ -13,6 +15,23 @@ cleanup
 
 # SESUDAH (BENAR):
 wait            # Tunggu SEMUA process, keep container alive
+```
+
+#### Problem 2: Workflow Tidak Execute
+**MASALAH:** Bot terima URL tapi workflow tidak jalan (tidak ada response 5+ menit)  
+**SOLUSI:** Remove `--no-discovery` dan increase startup delays
+
+```bash
+# SEBELUM (SALAH):
+npx inngest-cli dev --host 0.0.0.0 --port 3000 --no-discovery &
+sleep 5
+npx mastra start &
+
+# SESUDAH (BENAR):
+npx inngest-cli dev --host 0.0.0.0 --port 3000 &  # No --no-discovery
+sleep 10  # Increase wait time
+npx mastra start &
+sleep 5   # Wait for registration
 ```
 
 ### 2. Update Dokumentasi
@@ -167,6 +186,19 @@ Expected response:
 4. Bot harusnya respond dan proses video
 
 ## ⚠️ Troubleshooting
+
+### Jika Workflow Tidak Execute (Bot Tidak Respond):
+
+**Gejala:**
+- Bot terima URL (ada log `"TikTok URL detected"`)
+- Workflow triggered (ada log `"publishing event"`)
+- Tapi tidak ada response dari bot setelah 5+ menit
+
+**Solusi:**
+1. Pastikan sudah push versi terbaru `scripts/start-production.sh`
+2. Cek log Koyeb untuk `"apps synced"` - ini artinya Inngest functions registered
+3. Cek log untuk `"processMediaUpload"` - ini artinya workflow execute
+4. Jika tidak ada, lihat `TROUBLESHOOTING_WORKFLOW.md` untuk detail
 
 ### Jika Instance Masih Stopping:
 
